@@ -45,6 +45,7 @@ jobs:
         run: bun run db:generate
 
       - name: Run unit tests only
+        id: run_tests
         run: bun run test:unit
 
       - name: Upload coverage reports (optional)
@@ -62,13 +63,16 @@ jobs:
           script: |
             const pr_number = context.payload.workflow_run.pull_requests?.[0]?.number;
             if (!pr_number) return;
-            const status = '${{ steps.run_tests.outcome }}' === 'success' ? 'success' : 'failure';
-              await github.rest.repos.createCommitStatus({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                sha: context.payload.workflow_run.head_sha,
-                state: status,
-                target_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
-                description: status === 'success' ? 'Unit tests passed' : 'Unit tests failed',
-                context: 'Run Tests'
-              });
+
+            // Use job.status which reflects the overall job outcome
+            const status = '${{ job.status }}' === 'success' ? 'success' : 'failure';
+
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.payload.workflow_run.head_sha,
+              state: status,
+              target_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+              description: status === 'success' ? 'Unit tests passed' : 'Unit tests failed',
+              context: 'Run Tests'
+            });
