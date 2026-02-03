@@ -124,7 +124,7 @@ describe("Tags Route", () => {
         it("should return 404 for non-existent tag", async () => {
             prismaMock.tag.findUnique.mockResolvedValue(null);
 
-            const res = await app.request("/api/tags/cnotfound123456789012345");
+            const res = await app.request("/api/tags/cnotfound1234567890123450");
             const body: any = await res.json();
 
             expect(res.status).toBe(404);
@@ -138,6 +138,7 @@ describe("Tags Route", () => {
             const newTag = createMockTag({ name: "React", slug: "react" });
 
             prismaMock.tag.findFirst.mockResolvedValue(null); // No duplicate
+            prismaMock.tag.findUnique.mockResolvedValue(null); // For slug generation
             prismaMock.tag.create.mockResolvedValue(newTag);
 
             const res = await app.request("/api/tags", {
@@ -244,7 +245,7 @@ describe("Tags Route", () => {
             setupAdminAuth();
             prismaMock.tag.findUnique.mockResolvedValue(null);
 
-            const res = await app.request("/api/tags/cnotfound123456789012345-id", {
+            const res = await app.request("/api/tags/cnotfound1234567890123450", {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
@@ -324,7 +325,7 @@ describe("Tags Route", () => {
             setupAdminAuth();
             prismaMock.tag.findUnique.mockResolvedValue(null);
 
-            const res = await app.request("/api/tags/cnotfound123456789012345-id", {
+            const res = await app.request("/api/tags/cnotfound1234567890123450", {
                 method: "DELETE",
                 headers: {
                     Cookie: "better-auth.session_token=test-token",

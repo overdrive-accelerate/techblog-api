@@ -48,7 +48,7 @@ const createApp = () => {
 const createMockComment = (overrides: Partial<Comment> = {}): Comment => ({
     id: "clcomm1234567890123456780",
     content: "This is a test comment",
-    postId: "clpost1234567890123456780",
+    postId: "clclpost12345678901234567804567890123456780",
     authorId: "cluser1234567890123456780",
     createdAt: new Date("2024-01-01"),
     updatedAt: new Date("2024-01-01"),
@@ -116,7 +116,7 @@ describe("Comments Route", () => {
             prismaMock.comment.findMany.mockResolvedValue([]);
             prismaMock.comment.count.mockResolvedValue(0);
 
-            const res = await app.request("/api/comments/all?search=test&postId=post123", {
+            const res = await app.request("/api/comments/all?search=test&postId=clpost1234567890123456780", {
                 headers: { Cookie: "better-auth.session_token=test-token" },
             });
 
@@ -167,7 +167,7 @@ describe("Comments Route", () => {
             ];
             prismaMock.comment.findMany.mockResolvedValue(mockComments as never);
 
-            const res = await app.request("/api/comments/posts/post123");
+            const res = await app.request("/api/comments/posts/clpost1234567890123456780");
             const body: any = await res.json();
 
             expect(res.status).toBe(200);
@@ -178,7 +178,7 @@ describe("Comments Route", () => {
             setupUnauthenticated();
             prismaMock.post.findUnique.mockResolvedValue(null);
 
-            const res = await app.request("/api/comments/posts/cnotfound123456789012345");
+            const res = await app.request("/api/comments/posts/cnotfound1234567890123450");
             const body: any = await res.json();
 
             expect(res.status).toBe(404);
@@ -228,7 +228,7 @@ describe("Comments Route", () => {
             };
             prismaMock.comment.create.mockResolvedValue(newComment as never);
 
-            const res = await app.request("/api/comments/posts/post123", {
+            const res = await app.request("/api/comments/posts/clpost1234567890123456780", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -245,7 +245,7 @@ describe("Comments Route", () => {
         it("should return 401 when not authenticated", async () => {
             setupUnauthenticated();
 
-            const res = await app.request("/api/comments/posts/post123", {
+            const res = await app.request("/api/comments/posts/clpost1234567890123456780", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ content: "Comment" }),
@@ -258,7 +258,7 @@ describe("Comments Route", () => {
             setupReaderAuth();
             prismaMock.post.findUnique.mockResolvedValue(null);
 
-            const res = await app.request("/api/comments/posts/cnotfound123456789012345", {
+            const res = await app.request("/api/comments/posts/cnotfound1234567890123450", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -295,7 +295,7 @@ describe("Comments Route", () => {
         it("should return 400 for invalid body", async () => {
             setupReaderAuth();
 
-            const res = await app.request("/api/comments/posts/post123", {
+            const res = await app.request("/api/comments/posts/clpost1234567890123456780", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -340,7 +340,7 @@ describe("Comments Route", () => {
             setupReaderAuth();
             prismaMock.comment.findUnique.mockResolvedValue(null);
 
-            const res = await app.request("/api/comments/cnotfound123456789012345", {
+            const res = await app.request("/api/comments/cnotfound1234567890123450", {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
@@ -421,7 +421,7 @@ describe("Comments Route", () => {
             setupReaderAuth();
             prismaMock.comment.findUnique.mockResolvedValue(null);
 
-            const res = await app.request("/api/comments/cnotfound123456789012345", {
+            const res = await app.request("/api/comments/cnotfound1234567890123450", {
                 method: "DELETE",
                 headers: { Cookie: "better-auth.session_token=test-token" },
             });

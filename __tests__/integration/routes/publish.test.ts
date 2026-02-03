@@ -43,7 +43,7 @@ const createApp = () => {
 
 // Mock factories
 const createMockPost = (overrides: Partial<Post> = {}): Post => ({
-    id: "clpost1234567890123456780",
+    id: "clclpost12345678901234567804567890123456780",
     title: "Test Post",
     slug: "test-post",
     content: "Test content",
@@ -61,7 +61,7 @@ const createMockPost = (overrides: Partial<Post> = {}): Post => ({
 
 const createMockPublishRequest = (overrides: Partial<PublishRequest> = {}): PublishRequest => ({
     id: "clreq12345678901234567809",
-    postId: "clpost1234567890123456780",
+    postId: "clclpost12345678901234567804567890123456780",
     authorId: "clauthor12345678901234567",
     status: PublishRequestStatus.PENDING,
     message: null,
@@ -117,7 +117,7 @@ describe("Publish Route", () => {
             setupAuthorAuth();
             prismaMock.post.findUnique.mockResolvedValue(null);
 
-            const res = await app.request("/api/publish/posts/cnotfound123456789012345/request", {
+            const res = await app.request("/api/publish/posts/cnotfound1234567890123450/request", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -335,7 +335,7 @@ describe("Publish Route", () => {
             setupAdminAuth();
             prismaMock.publishRequest.findUnique.mockResolvedValue(null);
 
-            const res = await app.request("/api/publish/requests/cnotfound123456789012345/approve", {
+            const res = await app.request("/api/publish/requests/cnotfound1234567890123450/approve", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -425,7 +425,7 @@ describe("Publish Route", () => {
             setupAdminAuth();
             prismaMock.publishRequest.findUnique.mockResolvedValue(null);
 
-            const res = await app.request("/api/publish/requests/cnotfound123456789012345/reject", {
+            const res = await app.request("/api/publish/requests/cnotfound1234567890123450/reject", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -487,7 +487,7 @@ describe("Publish Route", () => {
             setupAuthorAuth();
             prismaMock.publishRequest.findUnique.mockResolvedValue(null);
 
-            const res = await app.request("/api/publish/requests/cnotfound123456789012345", {
+            const res = await app.request("/api/publish/requests/cnotfound1234567890123450", {
                 method: "DELETE",
                 headers: { Cookie: "better-auth.session_token=test-token" },
             });
