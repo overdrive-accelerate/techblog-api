@@ -230,7 +230,6 @@ describe("Users Route", () => {
             });
             const body: any = await res.json();
             expect(res.status).toBe(200);
-            expect(res.status).toBe(200);
             expect(body.id).toBe(mockUser.id);
         });
 
