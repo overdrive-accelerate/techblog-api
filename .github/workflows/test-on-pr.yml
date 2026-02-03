@@ -61,7 +61,7 @@ jobs:
         with:
           script: |
             const pr_number = context.payload.workflow_run.pull_requests?.[0]?.number;
-            if (pr_number) {
+            if (!pr_number) return;
             const status = '${{ steps.run_tests.outcome }}' === 'success' ? 'success' : 'failure';
               await github.rest.repos.createCommitStatus({
                 owner: context.repo.owner,
