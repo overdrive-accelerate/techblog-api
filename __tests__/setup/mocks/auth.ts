@@ -105,7 +105,7 @@ export const mockAdminSession = (
     overrides: Partial<MockUser> = {}
 ): MockAuthSession =>
     createMockSession({
-        id: "cladmin1234567890123456780",
+        id: "cladmin123456789012345670",
         role: Role.ADMIN,
         email: "admin@example.com",
         name: "Admin User",

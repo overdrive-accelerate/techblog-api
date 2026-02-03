@@ -117,7 +117,7 @@ export const createTagsRoute = (db: PrismaClient, authDep: AuthDependency) => {
             return c.json({ error: "Tag with this name already exists" }, 400);
         }
 
-        const slug = await generateUniqueTagSlug(data.name);
+        const slug = await generateUniqueTagSlug(data.name, undefined, db);
 
         const tag = await db.tag.create({
             data: {
@@ -162,7 +162,7 @@ export const createTagsRoute = (db: PrismaClient, authDep: AuthDependency) => {
             return c.json({ error: "Tag with this name already exists" }, 400);
         }
 
-        const slug = await generateUniqueTagSlug(data.name, tagId);
+        const slug = await generateUniqueTagSlug(data.name, tagId, db);
 
         const updatedTag = await db.tag.update({
             where: { id: tagId },

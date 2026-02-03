@@ -1,10 +1,17 @@
 import { vi, afterEach } from "vitest";
 
 // ============================================
-// Environment Variables (MUST BE FIRST)
+// Register Mocks BEFORE Everything Else
 // ============================================
 
-// Set test environment variables BEFORE importing mocks
+// Must register slug mock FIRST before any modules import it
+import "./mocks/slug";
+
+// ============================================
+// Environment Variables
+// ============================================
+
+// Set test environment variables BEFORE importing other mocks
 // This prevents the real auth module from throwing errors about missing env vars
 Object.assign(process.env, {
     NODE_ENV: "test",

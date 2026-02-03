@@ -192,7 +192,7 @@ describe("Comments Route", () => {
                 authorId: "author1",
             } as never);
 
-            const res = await app.request("/api/comments/posts/draft-post");
+            const res = await app.request("/api/comments/posts/cldraftpost12345678901234");
             const body: any = await res.json();
 
             expect(res.status).toBe(404);
@@ -207,7 +207,7 @@ describe("Comments Route", () => {
             } as never);
             prismaMock.comment.findMany.mockResolvedValue([]);
 
-            const res = await app.request("/api/comments/posts/draft-post", {
+            const res = await app.request("/api/comments/posts/cldraftpost12345678901234", {
                 headers: { Cookie: "better-auth.session_token=test-token" },
             });
 
@@ -278,7 +278,7 @@ describe("Comments Route", () => {
                 status: PostStatus.DRAFT,
             } as never);
 
-            const res = await app.request("/api/comments/posts/draft-post", {
+            const res = await app.request("/api/comments/posts/cldraftpost12345678901234", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

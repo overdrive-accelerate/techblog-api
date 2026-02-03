@@ -260,7 +260,7 @@ describe("Users Route", () => {
         it("should update user role when admin", async () => {
             const adminSession = mockAdminSession();
             setupAdminAuth();
-            const targetUser = createMockUser({ id: "different-user-id" });
+            const targetUser = createMockUser({ id: "cldiffuser123456789012340" });
             const updatedUser = {
                 ...targetUser,
                 role: Role.AUTHOR,
