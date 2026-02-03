@@ -11,7 +11,7 @@ export const slugify = vi.fn((text: string): string => {
         .toLowerCase()
         .trim()
         .replace(/\s+/g, "-") // Replace spaces with -
-        .replace(/[\s_-]+/g, "-")
+        .replace(/[^\w\-]+/g, "") // Remove all non-word chars
         .replace(/^-+|-+$/g, "");
 });
 
