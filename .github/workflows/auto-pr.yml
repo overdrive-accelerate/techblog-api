@@ -47,16 +47,22 @@ jobs:
 
           PR_TITLE="chore: merge dev into main"
           PR_BODY=$(cat <<'EOF'
-          ## Automated PR from dev to main
+## Automated PR from dev to main
 
-          This PR is created automatically when changes land in `dev`.
+This PR is created automatically when changes are pushed to the `dev` branch.
 
-          ### Checklist before merge
-          - [ ] All tests passing
-          - [ ] CodeRabbit review completed
-          - [ ] Greptile AI review completed
-          - [ ] Human reviewer(s) approved (if required)
-          EOF
+### Required Checks Before Merge
+- [ ] **CI Tests Pass** - All unit tests must pass
+- [ ] **CodeRabbit Review** - AI code quality and security review
+- [ ] **Greptile AI Review** - AI logic, syntax, and style analysis
+- [ ] **Human Approval** - At least 1 reviewer approval (if configured)
+
+### What's Changed
+See commit history for detailed changes.
+
+---
+*This is an automated PR. CodeRabbit and Greptile will begin their reviews shortly.*
+EOF
           )
 
           # Check for existing open PRs from dev to main
@@ -97,10 +103,19 @@ jobs:
           echo "pr_url=$pr_url" >> "$GITHUB_OUTPUT"
           echo "pr_action=created" >> "$GITHUB_OUTPUT"
 
+          # Wait for PR to be fully created and indexed
+          echo "Waiting 5 seconds for PR to be fully created..."
+          sleep 5
+
           # Trigger CodeRabbit review
+          echo "Triggering CodeRabbit review..."
           gh pr comment -R "$REPO" "$pr_url" -b "@coderabbitai review"
 
+          # Small delay between bot triggers
+          sleep 2
+
           # Trigger Greptile review
+          echo "Triggering Greptile review..."
           gh pr comment -R "$REPO" "$pr_url" -b "@greptileai"
 
-          echo "Triggered CodeRabbit and Greptile reviews"
+          echo "✓ PR created and AI reviewers triggered successfully"
