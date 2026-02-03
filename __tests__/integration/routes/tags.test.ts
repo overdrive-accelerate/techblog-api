@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
-// mockReset removed - using vi.clearAllMocks in setup
 import type { Tag } from "../../../generated/prisma/client.js";
 import {
     setupAdminAuth,
@@ -11,13 +10,7 @@ import {
 } from "../../setup/mocks/auth";
 import { prismaMock } from "../../setup/mocks/prisma";
 
-// Mock slug utility to avoid Prisma issues
-vi.mock("@/utils/slug", () => ({
-    generateUniqueTagSlug: vi.fn((name: string) => Promise.resolve(name.toLowerCase().replace(/\s+/g, "-"))),
-    slugify: vi.fn((text: string) => text.toLowerCase().replace(/\s+/g, "-")),
-}));
-
-// Import after mocks are registered by setup
+// Slug mock is registered globally in test-utils setup
 import { createTagsRoute } from "../../../src/routes/tags";
 
 // Helper to create test app

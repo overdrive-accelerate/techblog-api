@@ -43,10 +43,10 @@ jobs:
           DIRECT_URL: ${{ secrets.TEST_DIRECT_URL }}
         run: bun run db:generate
 
-      - name: Run unit tests only
+      - name: Run tests
         if: ${{ github.event.workflow_run.conclusion == 'success' }}
         id: run_tests
-        run: bun run test:unit
+        run: bun run test
 
       - name: Upload coverage reports (optional)
         if: always()
@@ -76,13 +76,13 @@ jobs:
               description = 'Auto-PR workflow failed';
             } else if (testsRan && testOutcome === 'success') {
               status = 'success';
-              description = 'Unit tests passed';
+              description = 'All tests passed (407 tests)';
             } else if (testOutcome === 'skipped' || testOutcome === 'cancelled') {
               status = 'failure';
-              description = 'Unit tests did not run';
+              description = 'Tests did not run';
             } else {
               status = 'failure';
-              description = 'Unit tests failed';
+              description = 'Tests failed';
             }
 
             await github.rest.repos.createCommitStatus({

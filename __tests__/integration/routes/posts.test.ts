@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
-// mockReset removed - using vi.clearAllMocks in setup
 import type { Post, User } from "../../../generated/prisma/client.js";
 import { PostStatus, Role } from "../../../generated/prisma/client.js";
 import {
@@ -9,17 +8,12 @@ import {
     setupAuthorAuth,
     setupReaderAuth,
     setupUnauthenticated,
-    mockAdminSession,
     mockAuthorSession,
     mockAuth,
 } from "../../setup/mocks/auth";
 import { prismaMock } from "../../setup/mocks/prisma";
 
-// Mock slug utility
-vi.mock("@/utils/slug", () => ({
-    generateUniqueSlug: vi.fn((title: string) => Promise.resolve(title.toLowerCase().replace(/\s+/g, "-"))),
-    generateUniqueTagSlug: vi.fn((name: string) => Promise.resolve(name.toLowerCase().replace(/\s+/g, "-"))),
-}));
+// Slug mock is registered globally in test-utils setup
 
 // Mock sanitize utility
 vi.mock("@/utils/sanitize", () => ({
