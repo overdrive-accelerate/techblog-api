@@ -117,7 +117,7 @@ describe("Publish Route", () => {
             setupAuthorAuth();
             prismaMock.post.findUnique.mockResolvedValue(null);
 
-            const res = await app.request("/api/publish/posts/cnotfound123456789012345/request", {
+            const res = await app.request("/api/publish/posts/cnotfound1234567890123450/request", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -335,7 +335,7 @@ describe("Publish Route", () => {
             setupAdminAuth();
             prismaMock.publishRequest.findUnique.mockResolvedValue(null);
 
-            const res = await app.request("/api/publish/requests/cnotfound123456789012345/approve", {
+            const res = await app.request("/api/publish/requests/cnotfound1234567890123450/approve", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -425,7 +425,7 @@ describe("Publish Route", () => {
             setupAdminAuth();
             prismaMock.publishRequest.findUnique.mockResolvedValue(null);
 
-            const res = await app.request("/api/publish/requests/cnotfound123456789012345/reject", {
+            const res = await app.request("/api/publish/requests/cnotfound1234567890123450/reject", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -487,7 +487,7 @@ describe("Publish Route", () => {
             setupAuthorAuth();
             prismaMock.publishRequest.findUnique.mockResolvedValue(null);
 
-            const res = await app.request("/api/publish/requests/cnotfound123456789012345", {
+            const res = await app.request("/api/publish/requests/cnotfound1234567890123450", {
                 method: "DELETE",
                 headers: { Cookie: "better-auth.session_token=test-token" },
             });

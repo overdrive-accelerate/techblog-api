@@ -216,7 +216,7 @@ describe("Posts Route", () => {
             setupUnauthenticated();
             prismaMock.post.findUnique.mockResolvedValue(null);
 
-            const res = await app.request("/api/posts/cnotfound123456789012345");
+            const res = await app.request("/api/posts/cnotfound1234567890123450");
             const body: any = await res.json();
 
             expect(res.status).toBe(404);
@@ -456,7 +456,7 @@ describe("Posts Route", () => {
             setupAuthorAuth();
             prismaMock.post.findUnique.mockResolvedValue(null);
 
-            const res = await app.request("/api/posts/cnotfound123456789012345-id", {
+            const res = await app.request("/api/posts/cnotfound1234567890123450", {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
@@ -544,7 +544,7 @@ describe("Posts Route", () => {
             setupAuthorAuth();
             prismaMock.post.findUnique.mockResolvedValue(null);
 
-            const res = await app.request("/api/posts/cnotfound123456789012345-id", {
+            const res = await app.request("/api/posts/cnotfound1234567890123450", {
                 method: "DELETE",
                 headers: { Cookie: "better-auth.session_token=test-token" },
             });

@@ -237,11 +237,10 @@ describe("Users Route", () => {
             setupAdminAuth();
             prismaMock.user.findUnique.mockResolvedValue(null);
 
-            const res = await app.request("/api/users/cnotfound123456789012345", {
+            const res = await app.request("/api/users/cnotfound1234567890123450", {
                 headers: { Cookie: "better-auth.session_token=test-token" },
             });
             const body: any = await res.json();
-
             expect(res.status).toBe(404);
             expect(body.error).toBe("User not found");
         });
@@ -307,7 +306,7 @@ describe("Users Route", () => {
             setupAdminAuth();
             prismaMock.user.findUnique.mockResolvedValue(null);
 
-            const res = await app.request("/api/users/cnotfound123456789012345/role", {
+            const res = await app.request("/api/users/cnotfound1234567890123450/role", {
                 method: "PATCH",
                 headers: {
                     "Content-Type": "application/json",
