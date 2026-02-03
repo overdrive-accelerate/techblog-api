@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Hono } from "hono";
+import { HTTPException } from "hono/http-exception";
 // mockReset removed - using vi.clearAllMocks in setup
 import type { Post, PublishRequest } from "../../../generated/prisma/client.js";
 import { PostStatus, PublishRequestStatus, Role } from "../../../generated/prisma/client.js";
@@ -22,12 +23,27 @@ const createApp = () => {
     const app = new Hono();
     const publishRoute = createPublishRoute(prismaMock, mockAuth);
     app.route("/api/publish", publishRoute);
+
+    // Error handler for validation and other errors
+    app.onError((err, c) => {
+        if (err instanceof HTTPException) {
+            const response: Record<string, unknown> = {
+                error: err.message,
+                status: err.status,
+            };
+            if (err.cause) {
+                response.issues = err.cause;
+            }
+            return c.json(response, err.status);
+        }
+        return c.json({ error: "Internal Server Error" }, 500);
+    });
     return app;
 };
 
 // Mock factories
 const createMockPost = (overrides: Partial<Post> = {}): Post => ({
-    id: "clpost123456789012345678",
+    id: "clpost1234567890123456780",
     title: "Test Post",
     slug: "test-post",
     content: "Test content",
@@ -44,8 +60,8 @@ const createMockPost = (overrides: Partial<Post> = {}): Post => ({
 });
 
 const createMockPublishRequest = (overrides: Partial<PublishRequest> = {}): PublishRequest => ({
-    id: "clreq1234567890123456789",
-    postId: "clpost123456789012345678",
+    id: "clreq12345678901234567809",
+    postId: "clpost1234567890123456780",
     authorId: "clauthor12345678901234567",
     status: PublishRequestStatus.PENDING,
     message: null,
@@ -101,7 +117,7 @@ describe("Publish Route", () => {
             setupAuthorAuth();
             prismaMock.post.findUnique.mockResolvedValue(null);
 
-            const res = await app.request("/api/publish/posts/nonexistent/request", {
+            const res = await app.request("/api/publish/posts/cnotfound123456789012345/request", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -319,7 +335,7 @@ describe("Publish Route", () => {
             setupAdminAuth();
             prismaMock.publishRequest.findUnique.mockResolvedValue(null);
 
-            const res = await app.request("/api/publish/requests/nonexistent/approve", {
+            const res = await app.request("/api/publish/requests/cnotfound123456789012345/approve", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -409,7 +425,7 @@ describe("Publish Route", () => {
             setupAdminAuth();
             prismaMock.publishRequest.findUnique.mockResolvedValue(null);
 
-            const res = await app.request("/api/publish/requests/nonexistent/reject", {
+            const res = await app.request("/api/publish/requests/cnotfound123456789012345/reject", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -471,7 +487,7 @@ describe("Publish Route", () => {
             setupAuthorAuth();
             prismaMock.publishRequest.findUnique.mockResolvedValue(null);
 
-            const res = await app.request("/api/publish/requests/nonexistent", {
+            const res = await app.request("/api/publish/requests/cnotfound123456789012345", {
                 method: "DELETE",
                 headers: { Cookie: "better-auth.session_token=test-token" },
             });

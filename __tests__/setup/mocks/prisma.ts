@@ -49,7 +49,7 @@ export { Role, PostStatus, PublishRequestStatus };
  * Create a mock User object
  */
 export const mockUser = (overrides: Partial<User> = {}): User => ({
-    id: "cltest123456789012345678",
+    id: "cltest1234567890123456780",
     email: "test@example.com",
     name: "Test User",
     role: Role.READER,
@@ -64,7 +64,7 @@ export const mockUser = (overrides: Partial<User> = {}): User => ({
  * Create a mock Post object
  */
 export const mockPost = (overrides: Partial<Post> = {}): Post => ({
-    id: "clpost123456789012345678",
+    id: "clpost1234567890123456780",
     title: "Test Post",
     slug: "test-post",
     content: "Test content for the post",
@@ -84,7 +84,7 @@ export const mockPost = (overrides: Partial<Post> = {}): Post => ({
  * Create a mock Tag object
  */
 export const mockTag = (overrides: Partial<Tag> = {}): Tag => ({
-    id: "cltag1234567890123456789",
+    id: "cltag12345678901234567809",
     name: "Test Tag",
     slug: "test-tag",
     createdAt: new Date("2024-01-01T00:00:00.000Z"),
@@ -98,7 +98,7 @@ export const mockTag = (overrides: Partial<Tag> = {}): Tag => ({
 export const mockComment = (overrides: Partial<Comment> = {}): Comment => ({
     id: "clcomment123456789012345",
     content: "Test comment content",
-    postId: "clpost123456789012345678",
+    postId: "clpost1234567890123456780",
     authorId: "clauthor12345678901234567",
     createdAt: new Date("2024-01-01T00:00:00.000Z"),
     updatedAt: new Date("2024-01-01T00:00:00.000Z"),
@@ -109,8 +109,8 @@ export const mockComment = (overrides: Partial<Comment> = {}): Comment => ({
  * Create a mock PublishRequest object
  */
 export const mockPublishRequest = (overrides: Partial<PublishRequest> = {}): PublishRequest => ({
-    id: "clpub123456789012345678",
-    postId: "clpost123456789012345678",
+    id: "clpub1234567890123456780",
+    postId: "clpost1234567890123456780",
     authorId: "clauthor12345678901234567",
     status: PublishRequestStatus.PENDING,
     message: null,
@@ -124,7 +124,7 @@ export const mockPublishRequest = (overrides: Partial<PublishRequest> = {}): Pub
  */
 export const mockProfile = (overrides: Partial<Profile> = {}): Profile => ({
     id: "clprofile12345678901234567",
-    userId: "cluser123456789012345678",
+    userId: "cluser1234567890123456780",
     name: "Test User",
     bio: "Test bio",
     avatar: null,

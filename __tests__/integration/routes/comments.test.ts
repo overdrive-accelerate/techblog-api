@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Hono } from "hono";
+import { HTTPException } from "hono/http-exception";
 // mockReset removed - using vi.clearAllMocks in setup
 import type { Comment } from "../../../generated/prisma/client.js";
 import { PostStatus } from "../../../generated/prisma/client.js";
@@ -25,22 +26,37 @@ const createApp = () => {
     const app = new Hono();
     const commentsRoute = createCommentsRoute(prismaMock, mockAuth);
     app.route("/api/comments", commentsRoute);
+
+    // Error handler for validation and other errors
+    app.onError((err, c) => {
+        if (err instanceof HTTPException) {
+            const response: Record<string, unknown> = {
+                error: err.message,
+                status: err.status,
+            };
+            if (err.cause) {
+                response.issues = err.cause;
+            }
+            return c.json(response, err.status);
+        }
+        return c.json({ error: "Internal Server Error" }, 500);
+    });
     return app;
 };
 
 // Mock factories
 const createMockComment = (overrides: Partial<Comment> = {}): Comment => ({
-    id: "clcomm123456789012345678",
+    id: "clcomm1234567890123456780",
     content: "This is a test comment",
-    postId: "clpost123456789012345678",
-    authorId: "cluser123456789012345678",
+    postId: "clpost1234567890123456780",
+    authorId: "cluser1234567890123456780",
     createdAt: new Date("2024-01-01"),
     updatedAt: new Date("2024-01-01"),
     ...overrides,
 });
 
 const createMockAuthor = () => ({
-    id: "cluser123456789012345678",
+    id: "cluser1234567890123456780",
     name: "Test User",
     image: null,
 });
@@ -162,7 +178,7 @@ describe("Comments Route", () => {
             setupUnauthenticated();
             prismaMock.post.findUnique.mockResolvedValue(null);
 
-            const res = await app.request("/api/comments/posts/nonexistent");
+            const res = await app.request("/api/comments/posts/cnotfound123456789012345");
             const body: any = await res.json();
 
             expect(res.status).toBe(404);
@@ -242,7 +258,7 @@ describe("Comments Route", () => {
             setupReaderAuth();
             prismaMock.post.findUnique.mockResolvedValue(null);
 
-            const res = await app.request("/api/comments/posts/nonexistent", {
+            const res = await app.request("/api/comments/posts/cnotfound123456789012345", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -324,7 +340,7 @@ describe("Comments Route", () => {
             setupReaderAuth();
             prismaMock.comment.findUnique.mockResolvedValue(null);
 
-            const res = await app.request("/api/comments/nonexistent", {
+            const res = await app.request("/api/comments/cnotfound123456789012345", {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
@@ -405,7 +421,7 @@ describe("Comments Route", () => {
             setupReaderAuth();
             prismaMock.comment.findUnique.mockResolvedValue(null);
 
-            const res = await app.request("/api/comments/nonexistent", {
+            const res = await app.request("/api/comments/cnotfound123456789012345", {
                 method: "DELETE",
                 headers: { Cookie: "better-auth.session_token=test-token" },
             });

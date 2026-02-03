@@ -25,7 +25,7 @@ describe("Test Setup Verification", () => {
         it("should create mock user with defaults", () => {
             const user = mockUser();
 
-            expect(user.id).toBe("cltest123456789012345678");
+            expect(user.id).toBe("cltest1234567890123456780");
             expect(user.email).toBe("test@example.com");
             expect(user.role).toBe("READER");
         });

@@ -184,7 +184,6 @@ upload.delete("/image", requireAuth, async (c) => {
     try {
         const user = c.get("user");
         const data = await validateBody(c, deleteUploadSchema);
-        if (!data) return;
         const { path: filePath } = data;
 
         if (!isSafeUploadPath(filePath)) {

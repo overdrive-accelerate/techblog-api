@@ -43,7 +43,7 @@ export const createMockSession = (
     userOverrides: Partial<MockUser> = {},
     sessionOverrides: Partial<MockSession> = {}
 ): MockAuthSession => {
-    const userId = userOverrides.id || "cltest123456789012345678";
+    const userId = userOverrides.id || "cltest1234567890123456780";
 
     return {
         user: {
@@ -58,7 +58,7 @@ export const createMockSession = (
             ...userOverrides,
         },
         session: {
-            id: "clsess123456789012345678",
+            id: "clsess1234567890123456780",
             expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
             token: "test-session-token-abc123",
             userId,
@@ -105,7 +105,7 @@ export const mockAdminSession = (
     overrides: Partial<MockUser> = {}
 ): MockAuthSession =>
     createMockSession({
-        id: "cladmin123456789012345678",
+        id: "cladmin1234567890123456780",
         role: Role.ADMIN,
         email: "admin@example.com",
         name: "Admin User",

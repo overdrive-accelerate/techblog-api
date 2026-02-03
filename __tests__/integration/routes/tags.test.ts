@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Hono } from "hono";
+import { HTTPException } from "hono/http-exception";
 // mockReset removed - using vi.clearAllMocks in setup
 import type { Tag } from "../../../generated/prisma/client.js";
 import {
@@ -24,12 +25,27 @@ const createApp = () => {
     const app = new Hono();
     const tagsRoute = createTagsRoute(prismaMock, mockAuth);
     app.route("/api/tags", tagsRoute);
+
+    // Error handler for validation and other errors
+    app.onError((err, c) => {
+        if (err instanceof HTTPException) {
+            const response: Record<string, unknown> = {
+                error: err.message,
+                status: err.status,
+            };
+            if (err.cause) {
+                response.issues = err.cause;
+            }
+            return c.json(response, err.status);
+        }
+        return c.json({ error: "Internal Server Error" }, 500);
+    });
     return app;
 };
 
 // Mock tag factory
 const createMockTag = (overrides: Partial<Tag> = {}): Tag => ({
-    id: "cltag1234567890123456789",
+    id: "cltag12345678901234567809",
     name: "JavaScript",
     slug: "javascript",
     createdAt: new Date("2024-01-01T00:00:00.000Z"),
@@ -108,7 +124,7 @@ describe("Tags Route", () => {
         it("should return 404 for non-existent tag", async () => {
             prismaMock.tag.findUnique.mockResolvedValue(null);
 
-            const res = await app.request("/api/tags/nonexistent");
+            const res = await app.request("/api/tags/cnotfound123456789012345");
             const body: any = await res.json();
 
             expect(res.status).toBe(404);
@@ -228,7 +244,7 @@ describe("Tags Route", () => {
             setupAdminAuth();
             prismaMock.tag.findUnique.mockResolvedValue(null);
 
-            const res = await app.request("/api/tags/nonexistent-id", {
+            const res = await app.request("/api/tags/cnotfound123456789012345-id", {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
@@ -308,7 +324,7 @@ describe("Tags Route", () => {
             setupAdminAuth();
             prismaMock.tag.findUnique.mockResolvedValue(null);
 
-            const res = await app.request("/api/tags/nonexistent-id", {
+            const res = await app.request("/api/tags/cnotfound123456789012345-id", {
                 method: "DELETE",
                 headers: {
                     Cookie: "better-auth.session_token=test-token",

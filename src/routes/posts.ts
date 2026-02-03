@@ -76,7 +76,6 @@ export const createPostsRoute = (db: PrismaClient, authDep: AuthDependency) => {
     // ============================================
     posts.get("/", optionalAuth, async (c) => {
         const query = validateQuery(c, getPostsQuerySchema);
-        if (!query) return;
 
         const { page, limit, status, authorId, tagSlug, isFeatured, search, sortBy, sortOrder } = query;
         const skip = (page - 1) * limit;
@@ -191,7 +190,6 @@ export const createPostsRoute = (db: PrismaClient, authDep: AuthDependency) => {
     // ============================================
     posts.get("/by-id/:id", requireAuth, async (c) => {
         const params = validateParams(c, idParamSchema);
-        if (!params) return;
         const postId = params.id;
         const user = c.get("user");
 
@@ -253,7 +251,6 @@ export const createPostsRoute = (db: PrismaClient, authDep: AuthDependency) => {
     // ============================================
     posts.get("/:slug", optionalAuth, async (c) => {
         const params = validateParams(c, postSlugParamSchema);
-        if (!params) return;
         const slug = params.slug;
         const user = c.get("user");
 
@@ -325,7 +322,6 @@ export const createPostsRoute = (db: PrismaClient, authDep: AuthDependency) => {
     posts.post("/", requireAuth, requireRole("AUTHOR", "ADMIN"), async (c) => {
         const user = c.get("user");
         const data = await validateBody(c, createPostSchema);
-        if (!data) return;
 
         // Sanitize content
         const sanitizedTitle = sanitizeText(data.title);
@@ -391,11 +387,9 @@ export const createPostsRoute = (db: PrismaClient, authDep: AuthDependency) => {
     // ============================================
     posts.put("/:id", requireAuth, async (c) => {
         const params = validateParams(c, idParamSchema);
-        if (!params) return;
         const postId = params.id;
         const user = c.get("user");
         const data = await validateBody(c, updatePostSchema);
-        if (!data) return;
 
         // Find existing post
         const existingPost = await db.post.findUnique({
@@ -488,7 +482,6 @@ export const createPostsRoute = (db: PrismaClient, authDep: AuthDependency) => {
     // ============================================
     posts.delete("/:id", requireAuth, async (c) => {
         const params = validateParams(c, idParamSchema);
-        if (!params) return;
         const postId = params.id;
         const user = c.get("user");
 
