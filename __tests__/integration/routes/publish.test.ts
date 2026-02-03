@@ -43,7 +43,7 @@ const createApp = () => {
 
 // Mock factories
 const createMockPost = (overrides: Partial<Post> = {}): Post => ({
-    id: "clclpost12345678901234567804567890123456780",
+    id: "clpost1234567890123456780",
     title: "Test Post",
     slug: "test-post",
     content: "Test content",
