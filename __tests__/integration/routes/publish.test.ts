@@ -61,7 +61,7 @@ const createMockPost = (overrides: Partial<Post> = {}): Post => ({
 
 const createMockPublishRequest = (overrides: Partial<PublishRequest> = {}): PublishRequest => ({
     id: "clreq12345678901234567809",
-    postId: "clclpost12345678901234567804567890123456780",
+    postId: "clpost1234567890123456780",
     authorId: "clauthor12345678901234567",
     status: PublishRequestStatus.PENDING,
     message: null,
