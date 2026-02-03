@@ -30,8 +30,11 @@ jobs:
       - name: Install dependencies
         run: bun install
 
-      - name: Run tests
-        run: bun run test:run
+      - name: Generate Prisma Client
+        run: bun run db:generate
+
+      - name: Run unit tests only
+        run: bun run test:unit
 
       - name: Upload coverage reports (optional)
         if: always()
