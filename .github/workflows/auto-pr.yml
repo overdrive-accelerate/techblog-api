@@ -46,21 +46,18 @@ jobs:
           BASE_BRANCH="main"
 
           PR_TITLE="chore: merge dev into main"
-          PR_BODY="## Automated PR from dev to main
+          PR_BODY=$(cat <<'EOF'
+          ## Automated PR from dev to main
 
-This PR is created automatically when changes are pushed to the dev branch.
+          This PR is created automatically when changes land in `dev`.
 
-### Required Checks Before Merge
-- **CI Tests Pass** - All unit tests must pass
-- **CodeRabbit Review** - AI code quality and security review
-- **Greptile AI Review** - AI logic, syntax, and style analysis
-- **Human Approval** - At least 1 reviewer approval (if configured)
-
-### What's Changed
-See commit history for detailed changes.
-
----
-*This is an automated PR. CodeRabbit and Greptile will begin their reviews shortly.*"
+          ### Checklist before merge
+          - [ ] All tests passing
+          - [ ] CodeRabbit review completed
+          - [ ] Greptile AI review completed
+          - [ ] Human reviewer(s) approved (if required)
+          EOF
+          )
 
           # Check for existing open PRs from dev to main
           pr_count=$(gh pr list -R "$REPO" --state open --base "$BASE_BRANCH" --head "$HEAD_BRANCH" --json number --jq 'length')
