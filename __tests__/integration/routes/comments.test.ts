@@ -48,7 +48,7 @@ const createApp = () => {
 const createMockComment = (overrides: Partial<Comment> = {}): Comment => ({
     id: "clcomm1234567890123456780",
     content: "This is a test comment",
-    postId: "clclpost12345678901234567804567890123456780",
+    postId: "clpost1234567890123456780",
     authorId: "cluser1234567890123456780",
     createdAt: new Date("2024-01-01"),
     updatedAt: new Date("2024-01-01"),
