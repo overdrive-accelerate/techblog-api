@@ -31,6 +31,9 @@ jobs:
         run: bun install
 
       - name: Generate Prisma Client
+        env:
+          DATABASE_URL: "postgresql://user:pass@localhost:5432/test?schema=public"
+          DIRECT_URL: "postgresql://user:pass@localhost:5432/test?schema=public"
         run: bun run db:generate
 
       - name: Run unit tests only
