@@ -45,6 +45,7 @@ jobs:
         run: bun run db:generate
 
       - name: Run unit tests only
+        id: run_tests
         run: bun run test:unit
 
       - name: Upload coverage reports (optional)
