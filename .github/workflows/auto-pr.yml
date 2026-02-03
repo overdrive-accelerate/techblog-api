@@ -46,7 +46,8 @@ jobs:
           BASE_BRANCH="main"
 
           PR_TITLE="chore: merge dev into main"
-          PR_BODY="## Automated PR from dev to main
+          read -r -d '' PR_BODY << 'EOFMARKER' || true
+## Automated PR from dev to main
 
 This PR is created automatically when changes are pushed to the dev branch.
 
@@ -60,7 +61,8 @@ This PR is created automatically when changes are pushed to the dev branch.
 See commit history for detailed changes.
 
 ---
-*This is an automated PR. CodeRabbit and Greptile will begin their reviews shortly.*"
+*This is an automated PR. CodeRabbit and Greptile will begin their reviews shortly.*
+EOFMARKER
 
           # Check for existing open PRs from dev to main
           pr_count=$(gh pr list -R "$REPO" --state open --base "$BASE_BRANCH" --head "$HEAD_BRANCH" --json number --jq 'length')
