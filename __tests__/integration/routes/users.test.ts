@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Hono } from "hono";
+import { HTTPException } from "hono/http-exception";
 // mockReset removed - using vi.clearAllMocks in setup
 import type { User } from "../../../generated/prisma/client.js";
 import { Role } from "../../../generated/prisma/client.js";
@@ -27,12 +28,27 @@ const createApp = () => {
     const app = new Hono();
     const usersRoute = createUsersRoute(prismaMock, mockAuth);
     app.route("/api/users", usersRoute);
+
+    // Error handler for validation and other errors
+    app.onError((err, c) => {
+        if (err instanceof HTTPException) {
+            const response: Record<string, unknown> = {
+                error: err.message,
+                status: err.status,
+            };
+            if (err.cause) {
+                response.issues = err.cause;
+            }
+            return c.json(response, err.status);
+        }
+        return c.json({ error: "Internal Server Error" }, 500);
+    });
     return app;
 };
 
 // Mock factories
 const createMockUser = (overrides: Partial<User> = {}): User => ({
-    id: "cluser123456789012345678",
+    id: "cluser1234567890123456780",
     email: "user@example.com",
     name: "Test User",
     role: Role.READER,
@@ -213,7 +229,10 @@ describe("Users Route", () => {
                 headers: { Cookie: "better-auth.session_token=test-token" },
             });
             const body: any = await res.json();
-
+            if (res.status !== 200) {
+                console.log("Unexpected status:", res.status);
+                console.log("Error body:", body);
+            }
             expect(res.status).toBe(200);
             expect(body.id).toBe(mockUser.id);
         });
@@ -222,7 +241,7 @@ describe("Users Route", () => {
             setupAdminAuth();
             prismaMock.user.findUnique.mockResolvedValue(null);
 
-            const res = await app.request("/api/users/nonexistent", {
+            const res = await app.request("/api/users/cnotfound123456789012345", {
                 headers: { Cookie: "better-auth.session_token=test-token" },
             });
             const body: any = await res.json();
@@ -292,7 +311,7 @@ describe("Users Route", () => {
             setupAdminAuth();
             prismaMock.user.findUnique.mockResolvedValue(null);
 
-            const res = await app.request("/api/users/nonexistent/role", {
+            const res = await app.request("/api/users/cnotfound123456789012345/role", {
                 method: "PATCH",
                 headers: {
                     "Content-Type": "application/json",

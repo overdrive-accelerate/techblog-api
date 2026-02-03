@@ -144,7 +144,6 @@ export const createUsersRoute = (db: PrismaClient, authDep: AuthDependency) => {
     // GET /api/users - List all users (admin only)
     users.get("/", requireAuth, requireRole("ADMIN"), async (c) => {
         const query = validateQuery(c, getUsersQuerySchema);
-        if (!query) return;
 
         const { search, role, page, limit } = query;
         const skip = (page - 1) * limit;
@@ -201,7 +200,6 @@ export const createUsersRoute = (db: PrismaClient, authDep: AuthDependency) => {
     // GET /api/users/:id - Get user by ID (admin only)
     users.get("/:id", requireAuth, requireRole("ADMIN"), async (c) => {
         const params = validateParams(c, userIdParamSchema);
-        if (!params) return;
         const { id } = params;
 
         const user = await db.user.findUnique({
@@ -245,7 +243,6 @@ export const createUsersRoute = (db: PrismaClient, authDep: AuthDependency) => {
         zValidator("json", updateRoleSchema),
         async (c) => {
             const params = validateParams(c, userIdParamSchema);
-            if (!params) return;
             const { id } = params;
             const { role } = c.req.valid("json");
             const currentUser = c.get("user");

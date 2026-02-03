@@ -15,7 +15,6 @@ export const createCommentsRoute = (db: PrismaClient, authDep: AuthDependency) =
     // ============================================
     comments.get("/all", requireAuth, requireRole("ADMIN"), async (c) => {
         const query = validateQuery(c, getCommentsQuerySchema);
-        if (!query) return;
 
         const { search, authorId, postId, page, limit } = query;
         const skip = (page - 1) * limit;
@@ -111,7 +110,6 @@ export const createCommentsRoute = (db: PrismaClient, authDep: AuthDependency) =
     // ============================================
     comments.get("/posts/:postId", optionalAuth, async (c) => {
         const params = validateParams(c, postIdParamSchema);
-        if (!params) return;
         const postId = params.postId;
 
         // Check if post exists and is published
@@ -158,11 +156,9 @@ export const createCommentsRoute = (db: PrismaClient, authDep: AuthDependency) =
     // ============================================
     comments.post("/posts/:postId", requireAuth, async (c) => {
         const params = validateParams(c, postIdParamSchema);
-        if (!params) return;
         const postId = params.postId;
         const user = c.get("user");
         const data = await validateBody(c, createCommentSchema);
-        if (!data) return;
 
         // Check if post exists and is published
         const post = await db.post.findUnique({
@@ -207,11 +203,9 @@ export const createCommentsRoute = (db: PrismaClient, authDep: AuthDependency) =
     // ============================================
     comments.put("/:id", requireAuth, async (c) => {
         const params = validateParams(c, idParamSchema);
-        if (!params) return;
         const commentId = params.id;
         const user = c.get("user");
         const data = await validateBody(c, updateCommentSchema);
-        if (!data) return;
 
         const existingComment = await db.comment.findUnique({
             where: { id: commentId },
@@ -256,7 +250,6 @@ export const createCommentsRoute = (db: PrismaClient, authDep: AuthDependency) =
     // ============================================
     comments.delete("/:id", requireAuth, async (c) => {
         const params = validateParams(c, idParamSchema);
-        if (!params) return;
         const commentId = params.id;
         const user = c.get("user");
 

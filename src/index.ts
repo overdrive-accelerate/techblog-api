@@ -115,13 +115,15 @@ app.notFound((c) => {
 app.onError((err, c) => {
     // Handle Hono HTTP exceptions (validation errors, auth errors, etc.)
     if (err instanceof HTTPException) {
-        return c.json(
-            {
-                error: err.message,
-                status: err.status,
-            },
-            err.status,
-        );
+        const response: Record<string, unknown> = {
+            error: err.message,
+            status: err.status,
+        };
+        // Include cause if present (used for validation error details)
+        if (err.cause) {
+            response.issues = err.cause;
+        }
+        return c.json(response, err.status);
     }
 
     // Handle Prisma/database errors

@@ -32,11 +32,9 @@ export const createPublishRoute = (db: PrismaClient, authDep: AuthDependency) =>
     // ============================================
     publish.post("/posts/:postId/request", requireAuth, requireRole("AUTHOR", "ADMIN"), async (c) => {
         const params = validateParams(c, postIdParamSchema);
-        if (!params) return;
         const postId = params.postId;
         const user = c.get("user");
         const data = await validateBody(c, publishPostSchema);
-        if (!data) return;
 
         // Find the post
         const post = await db.post.findUnique({
@@ -120,8 +118,6 @@ export const createPublishRoute = (db: PrismaClient, authDep: AuthDependency) =>
     // ============================================
     publish.get("/requests", requireAuth, requireRole("ADMIN"), async (c) => {
         const query = validateQuery(c, getPublishRequestsQuerySchema);
-        if (!query) return;
-
         const { status, authorId } = query;
 
         const where: Record<string, unknown> = {};
@@ -192,10 +188,8 @@ export const createPublishRoute = (db: PrismaClient, authDep: AuthDependency) =>
     // ============================================
     publish.post("/requests/:requestId/approve", requireAuth, requireRole("ADMIN"), async (c) => {
         const params = validateParams(c, requestIdParamSchema);
-        if (!params) return;
         const requestId = params.requestId;
         const data = await validateBody(c, approvePublishRequestSchema);
-        if (!data) return;
 
         // Find the request
         const request = await db.publishRequest.findUnique({
@@ -258,10 +252,8 @@ export const createPublishRoute = (db: PrismaClient, authDep: AuthDependency) =>
     // ============================================
     publish.post("/requests/:requestId/reject", requireAuth, requireRole("ADMIN"), async (c) => {
         const params = validateParams(c, requestIdParamSchema);
-        if (!params) return;
         const requestId = params.requestId;
         const data = await validateBody(c, rejectPublishRequestSchema);
-        if (!data) return;
 
         const request = await db.publishRequest.findUnique({
             where: { id: requestId },
@@ -319,7 +311,6 @@ export const createPublishRoute = (db: PrismaClient, authDep: AuthDependency) =>
     // ============================================
     publish.delete("/requests/:requestId", requireAuth, async (c) => {
         const params = validateParams(c, requestIdParamSchema);
-        if (!params) return;
         const requestId = params.requestId;
         const user = c.get("user");
 

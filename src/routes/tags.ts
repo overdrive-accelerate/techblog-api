@@ -42,7 +42,6 @@ export const createTagsRoute = (db: PrismaClient, authDep: AuthDependency) => {
     // ============================================
     tags.get("/:slug", async (c) => {
         const params = validateParams(c, tagSlugParamSchema);
-        if (!params) return;
         const slug = params.slug;
 
         const tag = await db.tag.findUnique({
@@ -103,7 +102,6 @@ export const createTagsRoute = (db: PrismaClient, authDep: AuthDependency) => {
     // ============================================
     tags.post("/", requireAuth, requireRole("ADMIN"), async (c) => {
         const data = await validateBody(c, createTagSchema);
-        if (!data) return;
 
         // Check if tag already exists
         const existing = await db.tag.findFirst({
@@ -136,10 +134,8 @@ export const createTagsRoute = (db: PrismaClient, authDep: AuthDependency) => {
     // ============================================
     tags.put("/:id", requireAuth, requireRole("ADMIN"), async (c) => {
         const params = validateParams(c, idParamSchema);
-        if (!params) return;
         const tagId = params.id;
         const data = await validateBody(c, updateTagSchema);
-        if (!data) return;
 
         const existingTag = await db.tag.findUnique({
             where: { id: tagId },
@@ -184,7 +180,6 @@ export const createTagsRoute = (db: PrismaClient, authDep: AuthDependency) => {
     // ============================================
     tags.delete("/:id", requireAuth, requireRole("ADMIN"), async (c) => {
         const params = validateParams(c, idParamSchema);
-        if (!params) return;
         const tagId = params.id;
 
         const tag = await db.tag.findUnique({

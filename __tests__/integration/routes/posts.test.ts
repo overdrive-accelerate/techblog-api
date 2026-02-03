@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Hono } from "hono";
+import { HTTPException } from "hono/http-exception";
 // mockReset removed - using vi.clearAllMocks in setup
 import type { Post, User } from "../../../generated/prisma/client.js";
 import { PostStatus, Role } from "../../../generated/prisma/client.js";
@@ -34,6 +35,21 @@ const createApp = () => {
     const app = new Hono();
     const postsRoute = createPostsRoute(prismaMock, mockAuth);
     app.route("/api/posts", postsRoute);
+
+    // Error handler for validation and other errors
+    app.onError((err, c) => {
+        if (err instanceof HTTPException) {
+            const response: Record<string, unknown> = {
+                error: err.message,
+                status: err.status,
+            };
+            if (err.cause) {
+                response.issues = err.cause;
+            }
+            return c.json(response, err.status);
+        }
+        return c.json({ error: "Internal Server Error" }, 500);
+    });
     return app;
 };
 
@@ -51,7 +67,7 @@ const createMockUser = (overrides: Partial<User> = {}): User => ({
 });
 
 const createMockPost = (overrides: Partial<Post> = {}): Post => ({
-    id: "clpost123456789012345678",
+    id: "clpost1234567890123456780",
     title: "Test Post",
     slug: "test-post",
     content: "This is test content",
@@ -200,7 +216,7 @@ describe("Posts Route", () => {
             setupUnauthenticated();
             prismaMock.post.findUnique.mockResolvedValue(null);
 
-            const res = await app.request("/api/posts/nonexistent");
+            const res = await app.request("/api/posts/cnotfound123456789012345");
             const body: any = await res.json();
 
             expect(res.status).toBe(404);
@@ -440,7 +456,7 @@ describe("Posts Route", () => {
             setupAuthorAuth();
             prismaMock.post.findUnique.mockResolvedValue(null);
 
-            const res = await app.request("/api/posts/nonexistent-id", {
+            const res = await app.request("/api/posts/cnotfound123456789012345-id", {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
@@ -528,7 +544,7 @@ describe("Posts Route", () => {
             setupAuthorAuth();
             prismaMock.post.findUnique.mockResolvedValue(null);
 
-            const res = await app.request("/api/posts/nonexistent-id", {
+            const res = await app.request("/api/posts/cnotfound123456789012345-id", {
                 method: "DELETE",
                 headers: { Cookie: "better-auth.session_token=test-token" },
             });
