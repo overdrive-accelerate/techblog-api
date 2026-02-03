@@ -21,13 +21,29 @@ export const slugify = vi.fn((text: string): string => {
 // Mock generateUniqueSlug - returns slugified name (for posts)
 export const generateUniqueSlug = vi.fn(
     async (title: string, _excludeId?: string): Promise<string> => {
-        return slugify(title);
+        return title
+            .toString()
+            .toLowerCase()
+            .trim()
+            .replace(/\s+/g, "-")
+            .replace(/[^\w\-]+/g, "")
+            .replace(/\-\-+/g, "-")
+            .replace(/^-+/, "")
+            .replace(/-+$/, "");
     }
 );
 
 // Mock generateUniqueTagSlug - returns slugified name
 export const generateUniqueTagSlug = vi.fn(
     async (name: string, _excludeId?: string): Promise<string> => {
-        return slugify(name);
+        return name
+            .toString()
+            .toLowerCase()
+            .trim()
+            .replace(/\s+/g, "-")
+            .replace(/[^\w\-]+/g, "")
+            .replace(/\-\-+/g, "-")
+            .replace(/^-+/, "")
+            .replace(/-+$/, "");
     }
 );

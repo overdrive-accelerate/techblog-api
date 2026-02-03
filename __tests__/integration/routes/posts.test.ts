@@ -55,7 +55,7 @@ const createApp = () => {
 
 // Mock factories
 const createMockUser = (overrides: Partial<User> = {}): User => ({
-    id: "clauthor12345678901234567",
+    id: "clauthor12345678901234560",
     email: "author@example.com",
     name: "Test Author",
     role: Role.AUTHOR,
@@ -339,6 +339,9 @@ describe("Posts Route", () => {
                 author: createMockUser({ id: authorSession.user.id }),
                 tags: [],
             };
+
+            // Mock slug uniqueness check
+            prismaMock.post.findUnique.mockResolvedValue(null);
 
             // Mock transaction
             prismaMock.$transaction.mockImplementation(async (fn: any) => {

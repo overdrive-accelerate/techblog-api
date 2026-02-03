@@ -8,7 +8,7 @@ import { vi } from "vitest";
  */
 export const mockAuth = {
     api: {
-        getSession: vi.fn((_options?: { headers: Headers }) => Promise.resolve(null)),
+        getSession: vi.fn((_options?: { headers: Headers }) => Promise.resolve(null as any)),
     },
     handler: vi.fn(),
 };

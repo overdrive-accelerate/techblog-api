@@ -52,7 +52,7 @@ export const createPostsRoute = (db: PrismaClient, authDep: AuthDependency) => {
         });
         if (existing) return existing;
 
-        const tagSlug = await generateUniqueTagSlug(tagName);
+        const tagSlug = await generateUniqueTagSlug(tagName, undefined, tx);
         try {
             return await tx.tag.create({
                 data: {
@@ -330,7 +330,7 @@ export const createPostsRoute = (db: PrismaClient, authDep: AuthDependency) => {
 
         // Create post with tag handling in a transaction
         const post = await withSlugRetry(
-            () => generateUniqueSlug(data.title),
+            () => generateUniqueSlug(data.title, undefined, db),
             (slug) =>
                 db.$transaction(async (tx) => {
                     const tagConnections = [];
@@ -417,7 +417,7 @@ export const createPostsRoute = (db: PrismaClient, authDep: AuthDependency) => {
         const updatedPost = await withSlugRetry(
             async () => {
                 if (data.title && data.title !== existingPost.title) {
-                    return generateUniqueSlug(data.title, postId);
+                    return generateUniqueSlug(data.title, postId, db);
                 }
                 return existingPost.slug;
             },
