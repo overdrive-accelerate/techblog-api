@@ -229,10 +229,7 @@ describe("Users Route", () => {
                 headers: { Cookie: "better-auth.session_token=test-token" },
             });
             const body: any = await res.json();
-            if (res.status !== 200) {
-                console.log("Unexpected status:", res.status);
-                console.log("Error body:", body);
-            }
+            const body: any = await res.json();
             expect(res.status).toBe(200);
             expect(body.id).toBe(mockUser.id);
         });
