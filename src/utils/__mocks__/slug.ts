@@ -12,7 +12,7 @@ export const slugify = vi.fn((text: string): string => {
         .trim()
         .replace(/\s+/g, "-") // Replace spaces with -
         .replace(/[^\w\-]+/g, "") // Remove all non-word chars
-        .replace(/^-+|-+$/g, "");
+        .replace(/\-\-+/g, "-") // Replace multiple - with single -
 });
 
 // Mock generateUniqueSlug - returns slugified name (for posts)
