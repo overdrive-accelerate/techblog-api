@@ -1,0 +1,40 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: "en-GB"
+early_access: false
+
+reviews:
+  profile: "assertive"
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: true
+  review_status: true
+  review_details: false
+  path_filters:
+    - "!node_modules/**"
+    - "!dist/**"
+    - "!build/**"
+    - "!coverage/**"
+    - "!generated/**"
+    - "!prisma/migrations/**"
+    - "!**/*.lock"
+  auto_review:
+    enabled: true
+    drafts: false
+  path_instructions:
+    - path: "*"
+      instructions:
+        "Use UTF-8, LF, and end files with a newline.\n
+        Trim trailing whitespace and avoid tabs.\n
+        Keep lines ≤120 chars when possible.\n
+        Remove debug logs and resolve TODOs before merging."
+    - path: "**/*.ts"
+      instructions:
+        "Prefer import type where applicable.\n
+        Use explicit types for public APIs.\n
+        Use braces for if/for/while blocks."
+    - path: "**/*.json"
+      instructions:
+        "Use 2-space indentation and avoid trailing commas."
+
+chat:
+  auto_reply: true

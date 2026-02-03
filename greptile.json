@@ -1,0 +1,48 @@
+{
+  "comment": "AI-generated code review by Greptile",
+  "commentTypes": [
+    "logic",
+    "syntax",
+    "style"
+  ],
+  "instructions": "Focus on code quality, security vulnerabilities, and best practices. Check for proper error handling, type safety, and test coverage.",
+  "ignorePatterns": "node_modules/**\ndist/**\nbuild/**\ncoverage/**\ngenerated/**\nprisma/migrations/**\n**/*.lock\n**/*.map",
+  "triggerOnUpdates": true,
+  "shouldUpdateDescription": true,
+  "statusCheck": true,
+  "strictness": 3,
+  "fixWithAI": true,
+  "summarySection": {
+    "included": true
+  },
+  "issuesTableSection": {
+    "included": true
+  },
+  "confidenceScoreSection": {
+    "included": true
+  },
+  "sequenceDiagramSection": {
+    "included": false
+  },
+  "includeBranches": [
+    "dev",
+    "main",
+    "feature/*"
+  ],
+  "customContext": {
+    "rules": [
+      {
+        "scope": [
+          "**/*.ts"
+        ],
+        "rule": "This is a TypeScript project using Hono.js for API routes, Prisma for database, and Better-Auth for authentication. Follow strict TypeScript practices."
+      },
+      {
+        "scope": [
+          "**/*.test.ts"
+        ],
+        "rule": "Tests use Vitest with vitest-mock-extended for mocking. Ensure proper mock reset and cleanup."
+      }
+    ]
+  }
+}
