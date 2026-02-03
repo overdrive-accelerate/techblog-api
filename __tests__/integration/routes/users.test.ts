@@ -241,10 +241,6 @@ describe("Users Route", () => {
                 headers: { Cookie: "better-auth.session_token=test-token" },
             });
             const body: any = await res.json();
-            if (res.status !== 404) {
-                console.log("Expected 404, got:", res.status);
-                console.log("Body:", body);
-            }
             expect(res.status).toBe(404);
             expect(body.error).toBe("User not found");
         });
