@@ -258,7 +258,6 @@ describe("Users Route", () => {
 
     describe("PATCH /api/users/:id/role", () => {
         it("should update user role when admin", async () => {
-            const adminSession = mockAdminSession();
             setupAdminAuth();
             const targetUser = createMockUser({ id: "cldiffuser123456789012340" });
             const updatedUser = {
