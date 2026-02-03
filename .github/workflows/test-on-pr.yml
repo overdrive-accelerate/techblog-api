@@ -72,4 +72,3 @@ jobs:
                 description: status === 'success' ? 'Unit tests passed' : 'Unit tests failed',
                 context: 'Run Tests'
               });
-            }
