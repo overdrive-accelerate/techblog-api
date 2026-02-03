@@ -68,7 +68,7 @@ jobs:
                 repo: context.repo.repo,
                 sha: context.payload.workflow_run.head_sha,
                 state: status,
-                target_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runid}`,
+                target_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
                 description: status === 'success' ? 'Unit tests passed' : 'Unit tests failed',
                 context: 'Run Tests'
               });
