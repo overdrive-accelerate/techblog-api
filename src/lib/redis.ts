@@ -10,15 +10,9 @@ let redis: Redis | null = null;
 export function getRedisClient(): Redis | null {
     // If Redis is already initialized (either connected or explicitly set to null), return it
     // Return existing client if already attempted initialization
-    // Return existing client if already initialized
     if (redis !== null) {
         return redis;
     }
-
-    // Check if REDIS_URL is provided
-    const redisUrl = process.env.REDIS_URL;
-
-    if (!redisUrl) {
         logger.warn("REDIS_URL not found - using in-memory rate limiting (not suitable for production)");
         redis = null;
         return null;
