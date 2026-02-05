@@ -7,7 +7,7 @@ import { generateUniqueSlug, generateUniqueTagSlug } from "@/utils/slug";
 import { sanitizeMarkdown, sanitizeText, sanitizeUrl } from "@/utils/sanitize";
 import { idParamSchema, postSlugParamSchema } from "@/schemas/params.schema";
 
-const MAX_SLUG_RETRIES = 3;
+const MAX_SLUG_RETRIES = 5; // Increased for better race condition handling
 
 function isUniqueConstraintError(error: unknown, fields?: string[]): boolean {
     if (!error || typeof error !== "object") return false;
@@ -419,11 +419,21 @@ export const createPostsRoute = (db: PrismaClient, authDep: AuthDependency) => {
         const sanitizedTitle = data.title ? sanitizeText(data.title) : undefined;
         const sanitizedContent = data.content ? sanitizeMarkdown(data.content) : undefined;
         const sanitizedExcerpt = data.excerpt ? sanitizeText(data.excerpt) : undefined;
-        const sanitizedCoverImage = data.coverImage ? sanitizeUrl(data.coverImage) : undefined;
 
-        // Validate coverImage URL if provided
-        if (data.coverImage && !sanitizedCoverImage) {
-            return c.json({ error: "Invalid cover image URL" }, 400);
+        // Handle coverImage with three cases:
+        // 1. Not provided (undefined) -> skip field update
+        // 2. Explicitly cleared (null or empty string) -> set to null
+        // 3. Valid URL -> validate and sanitize
+        let sanitizedCoverImage: string | null | undefined = undefined;
+        if ("coverImage" in data) {
+            if (data.coverImage === null || data.coverImage === "") {
+                sanitizedCoverImage = null; // Explicitly clear the field
+            } else if (data.coverImage) {
+                sanitizedCoverImage = sanitizeUrl(data.coverImage);
+                if (!sanitizedCoverImage) {
+                    return c.json({ error: "Invalid cover image URL" }, 400);
+                }
+            }
         }
 
         // Update post and tags atomically

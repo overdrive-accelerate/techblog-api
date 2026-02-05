@@ -6,28 +6,29 @@ import { sanitizeFileName } from "@/utils/sanitize";
 import { validateBody } from "@/utils/validation";
 import { deleteUploadSchema } from "@/schemas/upload.schema";
 import { logger } from "@/utils/logger";
+import type { PrismaClient } from "../../generated/prisma/client";
 
-export const createUploadRoute = (authDep: AuthDependency) => {
+export const createUploadRoute = (authDep: AuthDependency, db: PrismaClient) => {
     const upload = new Hono<AuthContext>();
     const { requireAuth } = createAuthMiddleware(authDep);
-const isProduction = process.env.NODE_ENV === "production";
+    const isProduction = process.env.NODE_ENV === "production";
 
-let supabase: ReturnType<typeof createClient> | null = null;
+    let supabase: ReturnType<typeof createClient> | null = null;
 
-function getSupabaseClient() {
-    if (!process.env.SUPABASE_URL) {
-        throw new Error("SUPABASE_URL environment variable is required");
+    function getSupabaseClient() {
+        if (!process.env.SUPABASE_URL) {
+            throw new Error("SUPABASE_URL environment variable is required");
+        }
+        if (!process.env.SUPABASE_ANON_KEY) {
+            throw new Error("SUPABASE_ANON_KEY environment variable is required");
+        }
+
+        if (!supabase) {
+            supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
+        }
+
+        return supabase;
     }
-    if (!process.env.SUPABASE_ANON_KEY) {
-        throw new Error("SUPABASE_ANON_KEY environment variable is required");
-    }
-
-    if (!supabase) {
-        supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
-    }
-
-    return supabase;
-}
 
 // Allowed image types
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif"];
@@ -169,6 +170,18 @@ upload.post("/image", requireAuth, async (c) => {
         // Get public URL
         const { data: urlData } = supabaseClient.storage.from("uploads").getPublicUrl(filePath);
 
+        // Store metadata in database for ownership tracking
+        await db.upload.create({
+            data: {
+                filePath,
+                fileName: file.name,
+                mimeType: file.type,
+                fileSize: file.size,
+                url: urlData.publicUrl,
+                userId: user.id,
+            },
+        });
+
         return c.json({
             url: urlData.publicUrl,
             path: filePath,
@@ -194,27 +207,26 @@ upload.delete("/image", requireAuth, async (c) => {
             return c.json({ error: "Invalid file path" }, 400);
         }
 
-        // Check if user owns this image with strict validation
+        // Query database to verify ownership (IDOR fix)
+        const uploadRecord = await db.upload.findUnique({
+            where: { filePath },
+            select: {
+                id: true,
+                userId: true,
+                filePath: true,
+            },
+        });
+
+        if (!uploadRecord) {
+            return c.json({ error: "File not found" }, 404);
+        }
+
+        // Check ownership - only file owner or admin can delete
+        const isOwner = uploadRecord.userId === user.id;
         const isAdmin = user.role === "ADMIN";
 
-        if (!isAdmin) {
-            // Extract user ID from path and validate it matches
-            const pathSegments = filePath.split("/").filter(Boolean);
-            // Expected format: blog-images/{userId}/...
-            if (pathSegments.length < 3 || pathSegments[0] !== "blog-images") {
-                return c.json({ error: "Invalid file path format" }, 400);
-            }
-
-            const fileOwnerId = pathSegments[1];
-            if (fileOwnerId !== user.id) {
-                return c.json({ error: "Forbidden" }, 403);
-            }
-
-            // Additional safety: ensure no path traversal characters after userId
-            const remainingPath = pathSegments.slice(2).join("/");
-            if (remainingPath.includes("..") || remainingPath.includes("\\")) {
-                return c.json({ error: "Invalid file path" }, 400);
-            }
+        if (!isOwner && !isAdmin) {
+            return c.json({ error: "Forbidden" }, 403);
         }
 
         // Delete from Supabase Storage
@@ -234,6 +246,11 @@ upload.delete("/image", requireAuth, async (c) => {
             );
         }
 
+        // Delete from database
+        await db.upload.delete({
+            where: { id: uploadRecord.id },
+        });
+
         return c.json({ message: "Image deleted successfully" });
     } catch (error) {
         logger.error("Delete error", error instanceof Error ? error : new Error(String(error)));
@@ -246,4 +263,5 @@ upload.delete("/image", requireAuth, async (c) => {
 
 // For backward compatibility with existing imports
 import { auth } from "@/lib/auth";
-export default createUploadRoute(auth);
+import { prisma } from "@/lib/prisma";
+export default createUploadRoute(auth, prisma);

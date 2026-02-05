@@ -58,6 +58,7 @@ model User {
   posts           Post[]
   comments        Comment[]
   publishRequests PublishRequest[]
+  uploads         Upload[]
 
   @@map("users")
   @@index([email])
@@ -228,4 +229,24 @@ model PublishRequest {
   @@index([status])
   @@index([createdAt])
   @@unique([postId, status])
+}
+
+model Upload {
+  id          String   @id @default(cuid())
+  filePath    String   @unique @map("file_path")
+  fileName    String   @map("file_name")
+  mimeType    String   @map("mime_type")
+  fileSize    Int      @map("file_size")
+  url         String
+  userId      String   @map("user_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("uploads")
+  @@index([userId])
+  @@index([filePath])
+  @@index([createdAt])
 }

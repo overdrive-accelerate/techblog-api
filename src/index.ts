@@ -1,3 +1,7 @@
+// Validate environment variables FIRST before any other imports
+import { validateEnv } from "@/config/env";
+validateEnv();
+
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger as honoLogger } from "hono/logger";
@@ -5,6 +9,7 @@ import { HTTPException } from "hono/http-exception";
 import { auth } from "@/lib/auth";
 import { disconnectDatabase } from "@/lib/prisma";
 import { logger as appLogger } from "@/utils/logger";
+import { getRedisClient } from "@/lib/redis";
 import {
     securityHeaders,
     requestValidation,
@@ -22,6 +27,9 @@ import commentsRoute from "@/routes/comments";
 import usersRoute from "@/routes/users";
 
 const app = new Hono();
+
+// Initialize Redis client on startup (will fallback to in-memory if unavailable)
+getRedisClient();
 
 // CORS - MUST be first to handle preflight (OPTIONS) requests
 const isProduction = process.env.NODE_ENV === "production";

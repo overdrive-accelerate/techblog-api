@@ -40,6 +40,33 @@ class Logger {
     }
 
     private formatLog(level: LogLevel, message: string, context?: Record<string, unknown>, error?: Error): string {
+        // In development, use human-readable format
+        if (!this.isProduction) {
+            const timestamp = new Date().toLocaleTimeString();
+            const levelIcon = {
+                debug: "🔍",
+                info: "ℹ️",
+                warn: "⚠️",
+                error: "❌",
+            }[level];
+
+            let output = `${levelIcon} [${timestamp}] ${message}`;
+
+            if (context && Object.keys(context).length > 0) {
+                output += ` ${JSON.stringify(context)}`;
+            }
+
+            if (error) {
+                output += `\n  ${error.name}: ${error.message}`;
+                if (error.stack) {
+                    output += `\n${error.stack}`;
+                }
+            }
+
+            return output;
+        }
+
+        // In production, use structured JSON format
         const entry: LogEntry = {
             timestamp: new Date().toISOString(),
             level,

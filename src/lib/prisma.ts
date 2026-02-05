@@ -4,11 +4,8 @@ import { Pool } from "pg";
 import { logger } from "@/utils/logger";
 
 // PostgreSQL connection pool for Supabase
-const connectionString = process.env.DATABASE_URL;
-
-if (!connectionString) {
-    throw new Error("DATABASE_URL environment variable is not set");
-}
+// Note: DATABASE_URL is validated in src/config/env.ts at startup
+const connectionString = process.env.DATABASE_URL!;
 
 // Configure connection pool with appropriate limits
 const pool = new Pool({
@@ -48,5 +45,10 @@ if (process.env.NODE_ENV !== "production") {
 export async function disconnectDatabase(): Promise<void> {
     await prisma.$disconnect();
     await pool.end();
-    logger.info("Database connections closed");
+
+    // Also disconnect Redis if available
+    const { disconnectRedis } = await import("@/lib/redis");
+    await disconnectRedis();
+
+    logger.info("Database and Redis connections closed");
 }
