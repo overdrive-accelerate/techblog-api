@@ -1,6 +1,7 @@
 import { PrismaClient } from "../../generated/prisma/client.js";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
+import { logger } from "@/utils/logger";
 
 // PostgreSQL connection pool for Supabase
 const connectionString = process.env.DATABASE_URL;
@@ -20,7 +21,7 @@ const pool = new Pool({
 
 // Handle pool errors
 pool.on("error", (err) => {
-    console.error("Unexpected database pool error:", err);
+    logger.error("Unexpected database pool error", err);
 });
 
 const adapter = new PrismaPg(pool);
@@ -47,5 +48,5 @@ if (process.env.NODE_ENV !== "production") {
 export async function disconnectDatabase(): Promise<void> {
     await prisma.$disconnect();
     await pool.end();
-    console.log("Database connections closed");
+    logger.info("Database connections closed");
 }

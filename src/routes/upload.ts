@@ -5,6 +5,7 @@ import { createClient } from "@supabase/supabase-js";
 import { sanitizeFileName } from "@/utils/sanitize";
 import { validateBody } from "@/utils/validation";
 import { deleteUploadSchema } from "@/schemas/upload.schema";
+import { logger } from "@/utils/logger";
 
 export const createUploadRoute = (authDep: AuthDependency) => {
     const upload = new Hono<AuthContext>();
@@ -152,7 +153,10 @@ upload.post("/image", requireAuth, async (c) => {
         });
 
         if (error) {
-            console.error("Supabase upload error:", error);
+            logger.error("Supabase upload error", error instanceof Error ? error : new Error(String(error)), {
+                filePath,
+                fileType: file.type,
+            });
             return c.json(
                 {
                     error: "Failed to upload image",
@@ -172,7 +176,7 @@ upload.post("/image", requireAuth, async (c) => {
             type: file.type,
         });
     } catch (error) {
-        console.error("Upload error:", error);
+        logger.error("Upload error", error instanceof Error ? error : new Error(String(error)));
         return c.json({ error: "Failed to upload image" }, 500);
     }
 });
@@ -190,12 +194,27 @@ upload.delete("/image", requireAuth, async (c) => {
             return c.json({ error: "Invalid file path" }, 400);
         }
 
-        // Check if user owns this image (path should start with their user ID)
-        const isOwner = filePath.startsWith(`blog-images/${user.id}/`);
+        // Check if user owns this image with strict validation
         const isAdmin = user.role === "ADMIN";
 
-        if (!isOwner && !isAdmin) {
-            return c.json({ error: "Forbidden" }, 403);
+        if (!isAdmin) {
+            // Extract user ID from path and validate it matches
+            const pathSegments = filePath.split("/").filter(Boolean);
+            // Expected format: blog-images/{userId}/...
+            if (pathSegments.length < 3 || pathSegments[0] !== "blog-images") {
+                return c.json({ error: "Invalid file path format" }, 400);
+            }
+
+            const fileOwnerId = pathSegments[1];
+            if (fileOwnerId !== user.id) {
+                return c.json({ error: "Forbidden" }, 403);
+            }
+
+            // Additional safety: ensure no path traversal characters after userId
+            const remainingPath = pathSegments.slice(2).join("/");
+            if (remainingPath.includes("..") || remainingPath.includes("\\")) {
+                return c.json({ error: "Invalid file path" }, 400);
+            }
         }
 
         // Delete from Supabase Storage
@@ -203,7 +222,9 @@ upload.delete("/image", requireAuth, async (c) => {
         const { error } = await supabaseClient.storage.from("uploads").remove([filePath]);
 
         if (error) {
-            console.error("Supabase delete error:", error);
+            logger.error("Supabase delete error", error instanceof Error ? error : new Error(String(error)), {
+                filePath,
+            });
             return c.json(
                 {
                     error: "Failed to delete image",
@@ -215,7 +236,7 @@ upload.delete("/image", requireAuth, async (c) => {
 
         return c.json({ message: "Image deleted successfully" });
     } catch (error) {
-        console.error("Delete error:", error);
+        logger.error("Delete error", error instanceof Error ? error : new Error(String(error)));
         return c.json({ error: "Failed to delete image" }, 500);
     }
 });

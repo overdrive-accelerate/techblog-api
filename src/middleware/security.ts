@@ -1,4 +1,5 @@
 import type { Context, Next } from "hono";
+import { logger } from "@/utils/logger";
 
 /**
  * Security headers middleware
@@ -108,7 +109,11 @@ export async function requestValidation(c: Context, next: Next) {
                 const contentLength = c.req.header("content-length");
                 if (contentLength && parseInt(contentLength) > 0) {
                     // Only warn, don't block (some clients may not set content-type correctly)
-                    console.warn(`Unexpected Content-Type: ${contentType} for ${method} ${path}`);
+                    logger.warn("Unexpected Content-Type", {
+                        contentType,
+                        method,
+                        path,
+                    });
                 }
             }
         }

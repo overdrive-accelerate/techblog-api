@@ -4,7 +4,7 @@ import type { PrismaClient } from "../../generated/prisma/client";
 import { validateBody, validateParams, validateQuery } from "@/utils/validation";
 import { createPostSchema, updatePostSchema, getPostsQuerySchema } from "@/schemas/post.schema";
 import { generateUniqueSlug, generateUniqueTagSlug } from "@/utils/slug";
-import { sanitizeMarkdown, sanitizeText } from "@/utils/sanitize";
+import { sanitizeMarkdown, sanitizeText, sanitizeUrl } from "@/utils/sanitize";
 import { idParamSchema, postSlugParamSchema } from "@/schemas/params.schema";
 
 const MAX_SLUG_RETRIES = 3;
@@ -92,11 +92,12 @@ export const createPostsRoute = (db: PrismaClient, authDep: AuthDependency) => {
         } else if (isAdmin) {
             if (status) where.status = status;
         } else {
+            // User is authenticated but not admin
             if (status && status !== "PUBLISHED") {
                 where.status = status;
-                where.authorId = user.id;
+                where.authorId = user.id; // Safe: user is guaranteed to exist in this branch
             } else {
-                where.OR = [{ status: "PUBLISHED" }, { authorId: user.id }];
+                where.OR = [{ status: "PUBLISHED" }, { authorId: user.id }]; // Safe: user exists
             }
         }
 
@@ -239,9 +240,6 @@ export const createPostsRoute = (db: PrismaClient, authDep: AuthDependency) => {
             return c.json({ error: "Forbidden" }, 403);
         }
 
-        // Log post view with safe null handling
-        console.log(`Post viewed by ${user.name?.toUpperCase() ?? 'Anonymous'}`);
-
         return c.json({
             ...post,
             views: post.viewCount,
@@ -330,6 +328,12 @@ export const createPostsRoute = (db: PrismaClient, authDep: AuthDependency) => {
         const sanitizedTitle = sanitizeText(data.title);
         const sanitizedContent = sanitizeMarkdown(data.content);
         const sanitizedExcerpt = data.excerpt ? sanitizeText(data.excerpt) : undefined;
+        const sanitizedCoverImage = data.coverImage ? sanitizeUrl(data.coverImage) : undefined;
+
+        // Validate coverImage URL
+        if (data.coverImage && !sanitizedCoverImage) {
+            return c.json({ error: "Invalid cover image URL" }, 400);
+        }
 
         // Create post with tag handling in a transaction
         const post = await withSlugRetry(
@@ -350,7 +354,7 @@ export const createPostsRoute = (db: PrismaClient, authDep: AuthDependency) => {
                             slug,
                             content: sanitizedContent,
                             excerpt: sanitizedExcerpt,
-                            coverImage: data.coverImage,
+                            coverImage: sanitizedCoverImage,
                             isFeatured: data.isFeatured || false,
                             authorId: user.id,
                             status: "DRAFT",
@@ -415,6 +419,12 @@ export const createPostsRoute = (db: PrismaClient, authDep: AuthDependency) => {
         const sanitizedTitle = data.title ? sanitizeText(data.title) : undefined;
         const sanitizedContent = data.content ? sanitizeMarkdown(data.content) : undefined;
         const sanitizedExcerpt = data.excerpt ? sanitizeText(data.excerpt) : undefined;
+        const sanitizedCoverImage = data.coverImage ? sanitizeUrl(data.coverImage) : undefined;
+
+        // Validate coverImage URL if provided
+        if (data.coverImage && !sanitizedCoverImage) {
+            return c.json({ error: "Invalid cover image URL" }, 400);
+        }
 
         // Update post and tags atomically
         const updatedPost = await withSlugRetry(
@@ -452,7 +462,7 @@ export const createPostsRoute = (db: PrismaClient, authDep: AuthDependency) => {
                             slug,
                             content: sanitizedContent,
                             excerpt: sanitizedExcerpt,
-                            coverImage: data.coverImage,
+                            coverImage: sanitizedCoverImage,
                             isFeatured: data.isFeatured,
                             ...tagUpdate,
                         },
