@@ -24,7 +24,7 @@ const testEmail = async (recipientEmail: string) => {
     console.log("✓ Environment variables found");
     console.log(`  From: ${fromEmail}`);
     console.log(`  To: ${recipientEmail}`);
-    console.log(`  API Key: ${apiKey.substring(0, 10)}...`);
+    console.log(`  API Key: [set]`);
     console.log("\n📧 Sending test email...\n");
 
     const resend = new Resend(apiKey);
