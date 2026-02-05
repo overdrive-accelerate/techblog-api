@@ -13,12 +13,14 @@ const testEmail = async (recipientEmail: string) => {
 
     if (!apiKey) {
         console.error("❌ RESEND_API_KEY is not set in environment variables");
-        process.exit(1);
+        process.exitCode = 1;
+        return;
     }
 
     if (!fromEmail) {
         console.error("❌ RESEND_FROM_EMAIL is not set in environment variables");
-        process.exit(1);
+        process.exitCode = 1;
+        return;
     }
 
     console.log("✓ Environment variables found");
@@ -81,35 +83,45 @@ const testEmail = async (recipientEmail: string) => {
             console.error("❌ Failed to send email:");
             console.error(`   Error: ${result.error.message}`);
             console.error(`   Name: ${result.error.name}`);
-            process.exit(1);
+            process.exitCode = 1;
+            return;
         }
 
         console.log("✅ Email sent successfully!");
         console.log(`   Email ID: ${result.data?.id}`);
         console.log("\n📬 Check your inbox at:", recipientEmail);
         console.log("   (Also check spam folder if you don't see it)\n");
+        process.exitCode = 0;
     } catch (error) {
         console.error("❌ Error sending email:");
         console.error(error);
-        process.exit(1);
+        process.exitCode = 1;
     }
 };
 
-// Get recipient email from command line argument
-const recipientEmail: string | undefined = process.argv[2];
+// Main execution
+const main = async () => {
+    // Get recipient email from command line argument
+    const recipientEmail: string | undefined = process.argv[2];
 
-if (!recipientEmail) {
-    console.error("Usage: bun run scripts/test-email.ts <recipient-email>");
-    console.error("Example: bun run scripts/test-email.ts your-email@example.com");
-    process.exit(1);
-}
+    if (!recipientEmail) {
+        console.error("Usage: bun run scripts/test-email.ts <recipient-email>");
+        console.error("Example: bun run scripts/test-email.ts your-email@example.com");
+        process.exitCode = 1;
+        return;
+    }
 
-// Validate email format
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-if (!emailRegex.test(recipientEmail)) {
-    console.error(`❌ Invalid email format: ${recipientEmail}`);
-    process.exit(1);
-}
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(recipientEmail)) {
+        console.error(`❌ Invalid email format: ${recipientEmail}`);
+        process.exitCode = 1;
+        return;
+    }
 
-// TypeScript now knows recipientEmail is string (narrowed by the checks above)
-testEmail(recipientEmail);
+    // TypeScript now knows recipientEmail is string (narrowed by the checks above)
+    await testEmail(recipientEmail);
+};
+
+// Run main and let event loop drain naturally
+main();
