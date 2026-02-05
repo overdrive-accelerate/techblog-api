@@ -84,12 +84,27 @@ export function rateLimiter(options: RateLimitOptions) {
                 remaining = Math.max(0, limit - count);
                 resetSeconds = Math.ceil((resetTime - now) / 1000);
             } catch (error) {
-                // Redis error - log and fall back to in-memory
-                logger.error("Redis rate limit error, falling back to in-memory", error instanceof Error ? error : new Error(String(error)));
+                // In production, fail closed - do not fall back to in-memory
+                if (process.env.NODE_ENV === "production") {
+                    logger.error("Redis rate limit error in production - rejecting request", error instanceof Error ? error : new Error(String(error)));
+                    return c.json(
+                        {
+                            error: "Service temporarily unavailable",
+                            message: "Rate limiting service is unavailable. Please try again later.",
+                        },
+                        503
+                    );
+                }
+                // In development, fall back to in-memory with warning
+                logger.warn("Redis rate limit error in development, falling back to in-memory", { error: String(error) });
                 return handleInMemoryRateLimit(c, next, key, limit, windowMs, message);
             }
         } else {
-            // Fall back to in-memory rate limiting
+            // Redis not configured
+            if (process.env.NODE_ENV === "production") {
+                logger.error("Redis not configured in production - this is not suitable for distributed systems");
+            }
+            // Fall back to in-memory rate limiting (development only)
             return handleInMemoryRateLimit(c, next, key, limit, windowMs, message);
         }
 
@@ -245,4 +260,11 @@ export const strictRateLimit = rateLimiter({
     limit: 5,
     windowMs: 60 * 1000, // 1 minute
     message: "Rate limit exceeded for sensitive operation",
+});
+
+/** Email rate limiter - moderate strictness for email operations */
+export const emailRateLimit = rateLimiter({
+    limit: process.env.NODE_ENV === "development" ? 10 : 5, // 10 in dev, 5 in prod
+    windowMs: process.env.NODE_ENV === "development" ? 60 * 1000 : 15 * 60 * 1000, // 1 min in dev, 15 min in prod
+    message: "Too many email requests, please try again later",
 });

@@ -9,6 +9,7 @@ import {
     getPublishRequestsQuerySchema,
 } from "@/schemas/post.schema";
 import { postIdParamSchema, requestIdParamSchema } from "@/schemas/params.schema";
+import { writeRateLimit } from "@/middleware/rate-limit";
 
 function isUniqueConstraintError(error: unknown, fields?: string[]): boolean {
     if (!error || typeof error !== "object") return false;
@@ -30,7 +31,7 @@ export const createPublishRoute = (db: PrismaClient, authDep: AuthDependency) =>
     // ============================================
     // REQUEST PUBLISH (Author requests to publish their draft)
     // ============================================
-    publish.post("/posts/:postId/request", requireAuth, requireRole("AUTHOR", "ADMIN"), async (c) => {
+    publish.post("/posts/:postId/request", writeRateLimit, requireAuth, requireRole("AUTHOR", "ADMIN"), async (c) => {
         const params = validateParams(c, postIdParamSchema);
         const postId = params.postId;
         const user = c.get("user");
@@ -186,7 +187,7 @@ export const createPublishRoute = (db: PrismaClient, authDep: AuthDependency) =>
     // ============================================
     // APPROVE PUBLISH REQUEST (ADMIN only)
     // ============================================
-    publish.post("/requests/:requestId/approve", requireAuth, requireRole("ADMIN"), async (c) => {
+    publish.post("/requests/:requestId/approve", writeRateLimit, requireAuth, requireRole("ADMIN"), async (c) => {
         const params = validateParams(c, requestIdParamSchema);
         const requestId = params.requestId;
         const data = await validateBody(c, approvePublishRequestSchema);
@@ -250,7 +251,7 @@ export const createPublishRoute = (db: PrismaClient, authDep: AuthDependency) =>
     // ============================================
     // REJECT PUBLISH REQUEST (ADMIN only)
     // ============================================
-    publish.post("/requests/:requestId/reject", requireAuth, requireRole("ADMIN"), async (c) => {
+    publish.post("/requests/:requestId/reject", writeRateLimit, requireAuth, requireRole("ADMIN"), async (c) => {
         const params = validateParams(c, requestIdParamSchema);
         const requestId = params.requestId;
         const data = await validateBody(c, rejectPublishRequestSchema);
@@ -309,7 +310,7 @@ export const createPublishRoute = (db: PrismaClient, authDep: AuthDependency) =>
     // ============================================
     // CANCEL PUBLISH REQUEST (Author cancels their own request)
     // ============================================
-    publish.delete("/requests/:requestId", requireAuth, async (c) => {
+    publish.delete("/requests/:requestId", writeRateLimit, requireAuth, async (c) => {
         const params = validateParams(c, requestIdParamSchema);
         const requestId = params.requestId;
         const user = c.get("user");

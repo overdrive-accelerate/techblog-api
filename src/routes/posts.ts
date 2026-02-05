@@ -6,6 +6,8 @@ import { createPostSchema, updatePostSchema, getPostsQuerySchema } from "@/schem
 import { generateUniqueSlug, generateUniqueTagSlug } from "@/utils/slug";
 import { sanitizeMarkdown, sanitizeText, sanitizeUrl } from "@/utils/sanitize";
 import { idParamSchema, postSlugParamSchema } from "@/schemas/params.schema";
+import { logger } from "@/utils/logger";
+import { writeRateLimit } from "@/middleware/rate-limit";
 
 const MAX_SLUG_RETRIES = 5; // Increased for better race condition handling
 
@@ -303,11 +305,19 @@ export const createPostsRoute = (db: PrismaClient, authDep: AuthDependency) => {
         }
 
         // Increment view count (only for published posts)
+        // Note: This uses Prisma's increment which is atomic at the database level
+        // For high-traffic production environments, consider using Redis or a dedicated analytics service
         if (isPublished) {
-            await db.post.update({
-                where: { id: post.id },
-                data: { viewCount: { increment: 1 } },
-            });
+            // Fire and forget - don't wait for view count update
+            db.post
+                .update({
+                    where: { id: post.id },
+                    data: { viewCount: { increment: 1 } },
+                })
+                .catch((error) => {
+                    // Log but don't fail the request if view count update fails
+                    logger.warn("Failed to increment view count", { postId: post.id, error: String(error) });
+                });
         }
 
         return c.json({
@@ -320,7 +330,7 @@ export const createPostsRoute = (db: PrismaClient, authDep: AuthDependency) => {
     // ============================================
     // CREATE POST (AUTHORS + ADMINS only)
     // ============================================
-    posts.post("/", requireAuth, requireRole("AUTHOR", "ADMIN"), async (c) => {
+    posts.post("/", writeRateLimit, requireAuth, requireRole("AUTHOR", "ADMIN"), async (c) => {
         const user = c.get("user");
         const data = await validateBody(c, createPostSchema);
 
@@ -392,7 +402,7 @@ export const createPostsRoute = (db: PrismaClient, authDep: AuthDependency) => {
     // ============================================
     // UPDATE POST (Owner or ADMIN only)
     // ============================================
-    posts.put("/:id", requireAuth, async (c) => {
+    posts.put("/:id", writeRateLimit, requireAuth, async (c) => {
         const params = validateParams(c, idParamSchema);
         const postId = params.id;
         const user = c.get("user");
@@ -503,7 +513,7 @@ export const createPostsRoute = (db: PrismaClient, authDep: AuthDependency) => {
     // ============================================
     // DELETE POST (Owner or ADMIN only)
     // ============================================
-    posts.delete("/:id", requireAuth, async (c) => {
+    posts.delete("/:id", writeRateLimit, requireAuth, async (c) => {
         const params = validateParams(c, idParamSchema);
         const postId = params.id;
         const user = c.get("user");

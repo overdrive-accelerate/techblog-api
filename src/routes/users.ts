@@ -7,6 +7,7 @@ import { validateParams, validateQuery } from "@/utils/validation";
 import { getUsersQuerySchema } from "@/schemas/user.schema";
 import { userIdParamSchema } from "@/schemas/params.schema";
 import { sanitizeText, sanitizeUrl } from "@/utils/sanitize";
+import { writeRateLimit } from "@/middleware/rate-limit";
 
 // Update profile schema
 const updateProfileSchema = z.object({
@@ -66,7 +67,7 @@ export const createUsersRoute = (db: PrismaClient, authDep: AuthDependency) => {
     });
 
     // PATCH /api/users/me - Update current user's profile
-    users.patch("/me", requireAuth, zValidator("json", updateProfileSchema), async (c) => {
+    users.patch("/me", writeRateLimit, requireAuth, zValidator("json", updateProfileSchema), async (c) => {
         const currentUser = c.get("user");
         const data = c.req.valid("json");
 
@@ -238,6 +239,7 @@ export const createUsersRoute = (db: PrismaClient, authDep: AuthDependency) => {
     // PATCH /api/users/:id/role - Update user role (admin only)
     users.patch(
         "/:id/role",
+        writeRateLimit,
         requireAuth,
         requireRole("ADMIN"),
         zValidator("json", updateRoleSchema),

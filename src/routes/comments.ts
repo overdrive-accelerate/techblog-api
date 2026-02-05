@@ -5,6 +5,7 @@ import { validateBody, validateParams, validateQuery } from "@/utils/validation"
 import { createCommentSchema, getCommentsQuerySchema, updateCommentSchema } from "@/schemas/post.schema";
 import { escapeHtml } from "@/utils/sanitize";
 import { idParamSchema, postIdParamSchema } from "@/schemas/params.schema";
+import { writeRateLimit } from "@/middleware/rate-limit";
 
 export const createCommentsRoute = (db: PrismaClient, authDep: AuthDependency) => {
     const comments = new Hono<AuthContext>();
@@ -154,7 +155,7 @@ export const createCommentsRoute = (db: PrismaClient, authDep: AuthDependency) =
     // ============================================
     // CREATE COMMENT
     // ============================================
-    comments.post("/posts/:postId", requireAuth, async (c) => {
+    comments.post("/posts/:postId", writeRateLimit, requireAuth, async (c) => {
         const params = validateParams(c, postIdParamSchema);
         const postId = params.postId;
         const user = c.get("user");
@@ -201,7 +202,7 @@ export const createCommentsRoute = (db: PrismaClient, authDep: AuthDependency) =
     // ============================================
     // UPDATE COMMENT (Owner or ADMIN only)
     // ============================================
-    comments.put("/:id", requireAuth, async (c) => {
+    comments.put("/:id", writeRateLimit, requireAuth, async (c) => {
         const params = validateParams(c, idParamSchema);
         const commentId = params.id;
         const user = c.get("user");
@@ -248,7 +249,7 @@ export const createCommentsRoute = (db: PrismaClient, authDep: AuthDependency) =
     // ============================================
     // DELETE COMMENT (Owner or ADMIN only)
     // ============================================
-    comments.delete("/:id", requireAuth, async (c) => {
+    comments.delete("/:id", writeRateLimit, requireAuth, async (c) => {
         const params = validateParams(c, idParamSchema);
         const commentId = params.id;
         const user = c.get("user");

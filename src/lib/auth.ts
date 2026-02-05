@@ -1,6 +1,8 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { prisma } from "@/lib/prisma";
+import { sendVerificationEmail, sendResetPasswordEmail } from "@/lib/email";
+import { logger } from "@/utils/logger";
 
 const isProduction = process.env.NODE_ENV === "production";
 
@@ -44,7 +46,30 @@ export const auth = betterAuth({
     }),
     emailAndPassword: {
         enabled: true,
-        requireEmailVerification: false, // Set to true in production with email service
+        requireEmailVerification: true, // Users must verify email before login
+        sendVerificationEmail: async ({ user, url, token }: { user: any; url: string; token: string }) => {
+            // Fire-and-forget to prevent timing attacks (per Better Auth security docs)
+            // Don't await - let email sending happen in background
+            sendVerificationEmail(user.email, url, token).catch((error) => {
+                logger.error(
+                    `Failed to send verification email to ${user.email} (userId: ${user.id})`,
+                    error instanceof Error ? error : new Error(String(error))
+                );
+            });
+        },
+        sendResetPassword: async ({ user, url, token }: { user: any; url: string; token: string }) => {
+            // Fire-and-forget to prevent timing attacks
+            // Don't await - let email sending happen in background
+            sendResetPasswordEmail(user.email, url, token).catch((error) => {
+                logger.error(
+                    `Failed to send password reset email to ${user.email} (userId: ${user.id})`,
+                    error instanceof Error ? error : new Error(String(error))
+                );
+            });
+        },
+        autoSignInAfterVerification: true, // Auto login after email verification
+        sendOnSignUp: true, // Send verification email immediately on signup
+        resetPasswordTokenExpiresIn: 3600, // 1 hour (3600 seconds)
     },
     session: {
         expiresIn: 60 * 60 * 24 * 7, // 7 days

@@ -6,7 +6,7 @@ import { z } from "zod";
 
 export const createPostSchema = z.object({
     title: z.string().min(1, "Title is required").max(200, "Title must be less than 200 characters"),
-    content: z.string().min(1, "Content is required"),
+    content: z.string().min(1, "Content is required").max(1048576, "Content must be less than 1MB (1,048,576 characters)"),
     excerpt: z.string().max(500, "Excerpt must be less than 500 characters").optional(),
     coverImage: z.string().url("Cover image must be a valid URL").optional(),
     tags: z.array(z.string()).optional(),
@@ -15,7 +15,7 @@ export const createPostSchema = z.object({
 
 export const updatePostSchema = z.object({
     title: z.string().min(1).max(200).optional(),
-    content: z.string().min(1).optional(),
+    content: z.string().min(1).max(1048576, "Content must be less than 1MB (1,048,576 characters)").optional(),
     excerpt: z.string().max(500).optional(),
     coverImage: z.string().url().optional().nullable().or(z.literal("")),
     tags: z.array(z.string()).optional(),
