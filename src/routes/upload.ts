@@ -5,28 +5,30 @@ import { createClient } from "@supabase/supabase-js";
 import { sanitizeFileName } from "@/utils/sanitize";
 import { validateBody } from "@/utils/validation";
 import { deleteUploadSchema } from "@/schemas/upload.schema";
+import { logger } from "@/utils/logger";
+import type { PrismaClient } from "../../generated/prisma/client";
 
-export const createUploadRoute = (authDep: AuthDependency) => {
+export const createUploadRoute = (authDep: AuthDependency, db: PrismaClient) => {
     const upload = new Hono<AuthContext>();
     const { requireAuth } = createAuthMiddleware(authDep);
-const isProduction = process.env.NODE_ENV === "production";
+    const isProduction = process.env.NODE_ENV === "production";
 
-let supabase: ReturnType<typeof createClient> | null = null;
+    let supabase: ReturnType<typeof createClient> | null = null;
 
-function getSupabaseClient() {
-    if (!process.env.SUPABASE_URL) {
-        throw new Error("SUPABASE_URL environment variable is required");
+    function getSupabaseClient() {
+        if (!process.env.SUPABASE_URL) {
+            throw new Error("SUPABASE_URL environment variable is required");
+        }
+        if (!process.env.SUPABASE_ANON_KEY) {
+            throw new Error("SUPABASE_ANON_KEY environment variable is required");
+        }
+
+        if (!supabase) {
+            supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
+        }
+
+        return supabase;
     }
-    if (!process.env.SUPABASE_ANON_KEY) {
-        throw new Error("SUPABASE_ANON_KEY environment variable is required");
-    }
-
-    if (!supabase) {
-        supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
-    }
-
-    return supabase;
-}
 
 // Allowed image types
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif"];
@@ -152,7 +154,10 @@ upload.post("/image", requireAuth, async (c) => {
         });
 
         if (error) {
-            console.error("Supabase upload error:", error);
+            logger.error("Supabase upload error", error instanceof Error ? error : new Error(String(error)), {
+                filePath,
+                fileType: file.type,
+            });
             return c.json(
                 {
                     error: "Failed to upload image",
@@ -165,6 +170,18 @@ upload.post("/image", requireAuth, async (c) => {
         // Get public URL
         const { data: urlData } = supabaseClient.storage.from("uploads").getPublicUrl(filePath);
 
+        // Store metadata in database for ownership tracking
+        await db.upload.create({
+            data: {
+                filePath,
+                fileName: file.name,
+                mimeType: file.type,
+                fileSize: file.size,
+                url: urlData.publicUrl,
+                userId: user.id,
+            },
+        });
+
         return c.json({
             url: urlData.publicUrl,
             path: filePath,
@@ -172,7 +189,7 @@ upload.post("/image", requireAuth, async (c) => {
             type: file.type,
         });
     } catch (error) {
-        console.error("Upload error:", error);
+        logger.error("Upload error", error instanceof Error ? error : new Error(String(error)));
         return c.json({ error: "Failed to upload image" }, 500);
     }
 });
@@ -190,8 +207,22 @@ upload.delete("/image", requireAuth, async (c) => {
             return c.json({ error: "Invalid file path" }, 400);
         }
 
-        // Check if user owns this image (path should start with their user ID)
-        const isOwner = filePath.startsWith(`blog-images/${user.id}/`);
+        // Query database to verify ownership (IDOR fix)
+        const uploadRecord = await db.upload.findUnique({
+            where: { filePath },
+            select: {
+                id: true,
+                userId: true,
+                filePath: true,
+            },
+        });
+
+        if (!uploadRecord) {
+            return c.json({ error: "File not found" }, 404);
+        }
+
+        // Check ownership - only file owner or admin can delete
+        const isOwner = uploadRecord.userId === user.id;
         const isAdmin = user.role === "ADMIN";
 
         if (!isOwner && !isAdmin) {
@@ -203,7 +234,9 @@ upload.delete("/image", requireAuth, async (c) => {
         const { error } = await supabaseClient.storage.from("uploads").remove([filePath]);
 
         if (error) {
-            console.error("Supabase delete error:", error);
+            logger.error("Supabase delete error", error instanceof Error ? error : new Error(String(error)), {
+                filePath,
+            });
             return c.json(
                 {
                     error: "Failed to delete image",
@@ -213,9 +246,14 @@ upload.delete("/image", requireAuth, async (c) => {
             );
         }
 
+        // Delete from database
+        await db.upload.delete({
+            where: { id: uploadRecord.id },
+        });
+
         return c.json({ message: "Image deleted successfully" });
     } catch (error) {
-        console.error("Delete error:", error);
+        logger.error("Delete error", error instanceof Error ? error : new Error(String(error)));
         return c.json({ error: "Failed to delete image" }, 500);
     }
 });
@@ -225,4 +263,5 @@ upload.delete("/image", requireAuth, async (c) => {
 
 // For backward compatibility with existing imports
 import { auth } from "@/lib/auth";
-export default createUploadRoute(auth);
+import { prisma } from "@/lib/prisma";
+export default createUploadRoute(auth, prisma);

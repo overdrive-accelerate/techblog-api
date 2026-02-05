@@ -17,7 +17,7 @@ export const updatePostSchema = z.object({
     title: z.string().min(1).max(200).optional(),
     content: z.string().min(1).optional(),
     excerpt: z.string().max(500).optional(),
-    coverImage: z.string().url().optional(),
+    coverImage: z.string().url().optional().nullable().or(z.literal("")),
     tags: z.array(z.string()).optional(),
     isFeatured: z.boolean().optional(),
 });

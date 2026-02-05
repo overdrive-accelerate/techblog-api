@@ -1,9 +1,15 @@
+// Validate environment variables FIRST before any other imports
+import { validateEnv } from "@/config/env";
+validateEnv();
+
 import { Hono } from "hono";
 import { cors } from "hono/cors";
-import { logger } from "hono/logger";
+import { logger as honoLogger } from "hono/logger";
 import { HTTPException } from "hono/http-exception";
 import { auth } from "@/lib/auth";
 import { disconnectDatabase } from "@/lib/prisma";
+import { logger as appLogger } from "@/utils/logger";
+import { getRedisClient } from "@/lib/redis";
 import {
     securityHeaders,
     requestValidation,
@@ -21,6 +27,9 @@ import commentsRoute from "@/routes/comments";
 import usersRoute from "@/routes/users";
 
 const app = new Hono();
+
+// Initialize Redis client on startup (will fallback to in-memory if unavailable)
+getRedisClient();
 
 // CORS - MUST be first to handle preflight (OPTIONS) requests
 const isProduction = process.env.NODE_ENV === "production";
@@ -57,7 +66,7 @@ app.use(
 );
 
 // Logging
-app.use("*", logger());
+app.use("*", honoLogger());
 
 // Security middleware (after CORS)
 app.use("*", securityHeaders);
@@ -128,7 +137,10 @@ app.onError((err, c) => {
 
     // Handle Prisma/database errors
     if (err.name === "PrismaClientKnownRequestError") {
-        console.error(`Database error: ${err.message}`);
+        appLogger.error("Database error", err, {
+            code: (err as { code?: string }).code,
+            path: c.req.path,
+        });
         return c.json(
             {
                 error: "Database operation failed",
@@ -150,7 +162,10 @@ app.onError((err, c) => {
     }
 
     // Generic server error
-    console.error(`Unhandled error: ${err.message}`, err.stack);
+    appLogger.error("Unhandled error", err, {
+        path: c.req.path,
+        method: c.req.method,
+    });
     return c.json(
         {
             error: "Internal Server Error",
@@ -162,13 +177,13 @@ app.onError((err, c) => {
 
 // Graceful shutdown handler
 const shutdown = async (signal: string) => {
-    console.log(`\n${signal} received. Starting graceful shutdown...`);
+    appLogger.info("Starting graceful shutdown", { signal });
     try {
         await disconnectDatabase();
-        console.log("Graceful shutdown completed");
+        appLogger.info("Graceful shutdown completed");
         process.exit(0);
     } catch (error) {
-        console.error("Error during shutdown:", error);
+        appLogger.error("Error during shutdown", error instanceof Error ? error : new Error(String(error)));
         process.exit(1);
     }
 };

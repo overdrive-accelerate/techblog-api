@@ -1,8 +1,10 @@
 import type { Context, Next } from "hono";
+import { getRedisClient, isRedisAvailable } from "@/lib/redis";
+import { logger } from "@/utils/logger";
 
 /**
- * Simple in-memory rate limiter
- * For production, consider using Redis for distributed rate limiting
+ * Distributed rate limiter using Redis (with in-memory fallback)
+ * Automatically uses Redis when available, falls back to in-memory for development
  */
 
 interface RateLimitEntry {
@@ -10,10 +12,10 @@ interface RateLimitEntry {
     resetTime: number;
 }
 
-// Store for rate limit tracking (IP -> entry)
+// In-memory store for rate limit tracking (fallback when Redis is unavailable)
 const rateLimitStore = new Map<string, RateLimitEntry>();
 
-// Clean up expired entries periodically
+// Clean up expired entries periodically (only used for in-memory fallback)
 setInterval(() => {
     const now = Date.now();
     for (const [key, entry] of rateLimitStore.entries()) {
@@ -54,25 +56,42 @@ export function rateLimiter(options: RateLimitOptions) {
             return next();
         }
 
-        const key = keyGenerator(c);
+        const key = `ratelimit:${keyGenerator(c)}`;
         const now = Date.now();
+        const redis = getRedisClient();
 
-        let entry = rateLimitStore.get(key);
+        let count: number;
+        let resetTime: number;
+        let remaining: number;
+        let resetSeconds: number;
 
-        // Initialize or reset if window expired
-        if (!entry || entry.resetTime < now) {
-            entry = {
-                count: 0,
-                resetTime: now + windowMs,
-            };
+        // Use Redis if available
+        if (redis && isRedisAvailable()) {
+            try {
+                // Use Redis INCR with expiration
+                const redisKey = key;
+                const currentCount = await redis.incr(redisKey);
+
+                if (currentCount === 1) {
+                    // First request in this window, set expiration
+                    await redis.pexpire(redisKey, windowMs);
+                }
+
+                // Get TTL to calculate reset time
+                const ttl = await redis.pttl(redisKey);
+                resetTime = now + (ttl > 0 ? ttl : windowMs);
+                count = currentCount;
+                remaining = Math.max(0, limit - count);
+                resetSeconds = Math.ceil((resetTime - now) / 1000);
+            } catch (error) {
+                // Redis error - log and fall back to in-memory
+                logger.error("Redis rate limit error, falling back to in-memory", error instanceof Error ? error : new Error(String(error)));
+                return handleInMemoryRateLimit(c, next, key, limit, windowMs, message);
+            }
+        } else {
+            // Fall back to in-memory rate limiting
+            return handleInMemoryRateLimit(c, next, key, limit, windowMs, message);
         }
-
-        entry.count++;
-        rateLimitStore.set(key, entry);
-
-        // Calculate remaining
-        const remaining = Math.max(0, limit - entry.count);
-        const resetSeconds = Math.ceil((entry.resetTime - now) / 1000);
 
         // Set rate limit headers
         c.header("X-RateLimit-Limit", limit.toString());
@@ -80,7 +99,7 @@ export function rateLimiter(options: RateLimitOptions) {
         c.header("X-RateLimit-Reset", resetSeconds.toString());
 
         // Check if limit exceeded
-        if (entry.count > limit) {
+        if (count > limit) {
             c.header("Retry-After", resetSeconds.toString());
             return c.json(
                 {
@@ -94,6 +113,56 @@ export function rateLimiter(options: RateLimitOptions) {
 
         return next();
     };
+}
+
+/**
+ * In-memory rate limiting fallback
+ */
+function handleInMemoryRateLimit(
+    c: Context,
+    next: Next,
+    key: string,
+    limit: number,
+    windowMs: number,
+    message: string
+) {
+    const now = Date.now();
+    let entry = rateLimitStore.get(key);
+
+    // Initialize or reset if window expired
+    if (!entry || entry.resetTime < now) {
+        entry = {
+            count: 0,
+            resetTime: now + windowMs,
+        };
+    }
+
+    entry.count++;
+    rateLimitStore.set(key, entry);
+
+    // Calculate remaining
+    const remaining = Math.max(0, limit - entry.count);
+    const resetSeconds = Math.ceil((entry.resetTime - now) / 1000);
+
+    // Set rate limit headers
+    c.header("X-RateLimit-Limit", limit.toString());
+    c.header("X-RateLimit-Remaining", remaining.toString());
+    c.header("X-RateLimit-Reset", resetSeconds.toString());
+
+    // Check if limit exceeded
+    if (entry.count > limit) {
+        c.header("Retry-After", resetSeconds.toString());
+        return c.json(
+            {
+                error: "Rate limit exceeded",
+                message,
+                retryAfter: resetSeconds,
+            },
+            429
+        );
+    }
+
+    return next();
 }
 
 /**
