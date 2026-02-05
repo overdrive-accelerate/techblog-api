@@ -10,14 +10,9 @@ let redis: Redis | null = null;
 export function getRedisClient(): Redis | null {
     // If Redis is already initialized (either connected or explicitly set to null), return it
     // Return existing client if already attempted initialization
+    // Return existing client if already initialized
     if (redis !== null) {
         return redis;
-    }
-    
-    // Return early if we already tried and failed
-    if (redis === null && redisInitialized) {
-        return null;
-    }
     }
 
     // Check if REDIS_URL is provided
