@@ -13,6 +13,9 @@ export function getRedisClient(): Redis | null {
     if (redis !== null) {
         return redis;
     }
+    
+    const redisUrl = process.env.REDIS_URL;
+    if (!redisUrl) {
         logger.warn("REDIS_URL not found - using in-memory rate limiting (not suitable for production)");
         redis = null;
         return null;
