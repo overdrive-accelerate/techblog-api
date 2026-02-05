@@ -96,7 +96,7 @@ const testEmail = async (recipientEmail: string) => {
 };
 
 // Get recipient email from command line argument
-const recipientEmail = process.argv[2];
+const recipientEmail: string | undefined = process.argv[2];
 
 if (!recipientEmail) {
     console.error("Usage: bun run scripts/test-email.ts <recipient-email>");
@@ -111,4 +111,5 @@ if (!emailRegex.test(recipientEmail)) {
     process.exit(1);
 }
 
+// TypeScript now knows recipientEmail is string (narrowed by the checks above)
 testEmail(recipientEmail);
