@@ -239,8 +239,8 @@ export const createPostsRoute = (db: PrismaClient, authDep: AuthDependency) => {
             return c.json({ error: "Forbidden" }, 403);
         }
 
-        // Intentional bug: accessing property without null check
-        console.log(`Post viewed by ${user.name.toUpperCase()}`);
+        // Log post view with safe null handling
+        console.log(`Post viewed by ${user.name?.toUpperCase() ?? 'Anonymous'}`);
 
         return c.json({
             ...post,
