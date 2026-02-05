@@ -36,6 +36,25 @@ const envSchema = z.object({
 
     // Redis - Optional (falls back to in-memory)
     REDIS_URL: z.string().url("REDIS_URL must be a valid Redis connection string").optional(),
+
+    // Email - Required for email verification and password reset
+    RESEND_API_KEY: z.string().min(1, "RESEND_API_KEY is required for email functionality"),
+    RESEND_FROM_EMAIL: z
+        .string()
+        .min(1)
+        .email("RESEND_FROM_EMAIL must be a valid email address")
+        .refine(
+            (email) => {
+                // Resend requires verified domain, so no @gmail.com, @yahoo.com, etc.
+                const parts = email.split("@");
+                if (parts.length !== 2 || !parts[1]) return false;
+                const domain = parts[1];
+                return !["gmail.com", "yahoo.com", "hotmail.com", "outlook.com"].includes(domain);
+            },
+            {
+                message: "RESEND_FROM_EMAIL must use a verified domain (not gmail, yahoo, etc.)",
+            }
+        ),
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -79,8 +98,8 @@ export function validateEnv(): Env {
                 "",
             ].join("\n");
 
-            // Log the error
-            console.error(errorMessage);
+            // Log the error with structured logging
+            logger.error(errorMessage);
 
             // Throw to prevent server from starting
             throw new Error("Environment validation failed. Check logs above for details.");

@@ -12,11 +12,15 @@ This guide covers setting up your blog-api for production deployment on Railway 
 
 ## Step 1: Install Dependencies
 
-Before deploying, install the required Redis client:
+Before deploying, install the required dependencies:
 
 ```bash
+# Redis client for distributed rate limiting
 bun add ioredis
 bun add -D @types/ioredis
+
+# Resend for email verification and password reset
+bun add resend
 ```
 
 Commit and push these changes to your repository.
@@ -96,6 +100,16 @@ SUPABASE_URL=https://your-project.supabase.co
 
 SUPABASE_ANON_KEY=your-supabase-anon-key
 # Required for file upload functionality
+
+# Email (REQUIRED for email verification and password reset)
+RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxxx
+# Get from: https://resend.com/api-keys
+# Required for sending verification and password reset emails
+
+RESEND_FROM_EMAIL=noreply@yourdomain.com
+# Must be a verified domain in Resend (NOT @gmail.com, @yahoo.com, etc.)
+# Format: name@your-verified-domain.com
+# See: https://resend.com/domains
 ```
 
 ### Optional Variables
@@ -173,7 +187,115 @@ If you see this warning, Redis is not configured:
 
 ---
 
-## Step 6: Security Checklist
+## Step 6: Set Up Resend for Email
+
+Email verification and password reset require a transactional email service. We use Resend for reliable email delivery.
+
+### Create Resend Account
+
+1. **Sign Up:**
+   - Go to [resend.com](https://resend.com)
+   - Create a free account
+   - Free tier includes 3,000 emails/month (100/day)
+
+2. **Verify Your Domain:**
+   - Go to [Domains](https://resend.com/domains)
+   - Click "Add Domain"
+   - Add your domain (e.g., `yourdomain.com`)
+   - Add the DNS records provided by Resend to your domain's DNS settings
+   - Wait for verification (usually 5-15 minutes)
+
+3. **Get API Key:**
+   - Go to [API Keys](https://resend.com/api-keys)
+   - Click "Create API Key"
+   - Give it a name (e.g., "Railway Production")
+   - Select "Sending access" permission
+   - Copy the API key (starts with `re_`)
+   - **IMPORTANT:** Save this key - you can't see it again
+
+4. **Configure Environment Variables:**
+   ```bash
+   RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxxx
+   RESEND_FROM_EMAIL=noreply@yourdomain.com
+   ```
+
+### Email Templates
+
+The API includes pre-built branded email templates for:
+- **Email Verification:** Sent immediately on signup
+- **Password Reset:** Sent when user requests password reset
+
+Both templates include:
+- Professional design with your branding
+- Clear call-to-action buttons
+- Security warnings
+- Automatic expiration (1 hour)
+
+### Email Flow
+
+**Signup Flow:**
+1. User signs up with email/password
+2. API sends verification email automatically
+3. User clicks verification link
+4. User is automatically logged in
+5. Account is now verified and active
+
+**Password Reset Flow:**
+1. User requests password reset
+2. API sends reset email (fire-and-forget to prevent timing attacks)
+3. User clicks reset link
+4. User enters new password
+5. Password is updated securely
+
+### Rate Limiting
+
+Email endpoints have moderate rate limits to prevent abuse:
+- **Development:** 10 emails per minute per IP
+- **Production:** 5 emails per 15 minutes per IP
+
+### Testing
+
+Test email functionality locally:
+
+```bash
+# Set up .env with Resend credentials
+RESEND_API_KEY=re_test_xxxxx
+RESEND_FROM_EMAIL=onboarding@resend.dev  # Use Resend's test domain
+
+# Start server
+bun run dev
+
+# Test signup (triggers verification email)
+curl -X POST http://localhost:3001/api/auth/sign-up \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "email": "test@example.com",
+    "password": "SecurePassword123!",
+    "name": "Test User"
+  }'
+```
+
+### Troubleshooting
+
+**"RESEND_FROM_EMAIL must use a verified domain"**
+- Make sure you're not using `@gmail.com`, `@yahoo.com`, etc.
+- Verify your domain in Resend dashboard
+- Wait for DNS propagation (5-15 minutes)
+
+**Emails not sending**
+- Check Railway logs for email errors
+- Verify `RESEND_API_KEY` is correct
+- Check Resend dashboard for delivery logs
+- Ensure you haven't exceeded rate limits
+
+**Verification link expired**
+- Links expire after 1 hour for security
+- User can request a new verification email
+- Check Better Auth session configuration
+
+---
+
+## Step 7: Security Checklist
 
 Before going live, verify these settings:
 
@@ -184,6 +306,8 @@ Before going live, verify these settings:
 - [ ] `NODE_ENV=production`
 - [ ] `TRUST_PROXY=true` (critical for Railway)
 - [ ] `REDIS_URL` is set (automatically by Railway Redis)
+- [ ] `RESEND_API_KEY` is set with valid API key
+- [ ] `RESEND_FROM_EMAIL` uses verified domain (not gmail/yahoo)
 
 ### Database
 - [ ] Migrations are applied successfully
@@ -191,23 +315,32 @@ Before going live, verify these settings:
 - [ ] `DIRECT_URL` is set for migrations
 
 ### Authentication
-- [ ] Email verification is enabled (update `src/lib/auth.ts`)
+- [ ] Email verification is enabled (`requireEmailVerification: true` in auth.ts)
+- [ ] Email sending callbacks are configured
 - [ ] Session timeout is configured (default: 7 days)
 - [ ] CORS is properly configured for your frontend
+- [ ] Password reset token expiration is set (default: 1 hour)
 
 ### File Uploads
 - [ ] Supabase Storage bucket "uploads" exists
 - [ ] Row Level Security (RLS) policies are configured
 - [ ] `SUPABASE_URL` and `SUPABASE_ANON_KEY` are set
 
+### Email Service
+- [ ] Resend account created
+- [ ] Domain verified in Resend dashboard
+- [ ] API key generated and added to Railway
+- [ ] Email templates tested
+- [ ] Rate limiting configured
+
 ---
 
-## Step 7: Deploy
+## Step 8: Deploy
 
 1. **Push to GitHub:**
    ```bash
    git add .
-   git commit -m "Configure Railway deployment with Redis"
+   git commit -m "Configure Railway deployment with Redis and Resend"
    git push origin main
    ```
 
@@ -220,10 +353,11 @@ Before going live, verify these settings:
    - Check Railway logs for any errors
    - Verify Redis connection: "Redis connected successfully"
    - Verify database connection: "Database connections ready"
+   - Verify environment validation passes
 
 ---
 
-## Step 8: Testing
+## Step 9: Testing
 
 ### Test Rate Limiting
 

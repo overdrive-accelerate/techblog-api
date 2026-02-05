@@ -22,6 +22,8 @@ Object.assign(process.env, {
     FRONTEND_URL: "http://localhost:3000",
     SUPABASE_URL: "https://test.supabase.co",
     SUPABASE_ANON_KEY: "test-anon-key-for-testing-purposes",
+    RESEND_API_KEY: "re_test_api_key_for_testing",
+    RESEND_FROM_EMAIL: "noreply@test.com",
     PORT: "3001",
 });
 

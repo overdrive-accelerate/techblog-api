@@ -7,28 +7,25 @@ import { validateBody } from "@/utils/validation";
 import { deleteUploadSchema } from "@/schemas/upload.schema";
 import { logger } from "@/utils/logger";
 import type { PrismaClient } from "../../generated/prisma/client";
+import { uploadRateLimit } from "@/middleware/rate-limit";
+import { getEnv } from "@/config/env";
+
+// Lazy-initialize Supabase client on first use
+let supabase: ReturnType<typeof createClient> | null = null;
+let isProduction = false;
+
+function getSupabaseClient() {
+    if (!supabase) {
+        const env = getEnv();
+        supabase = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
+        isProduction = env.NODE_ENV === "production";
+    }
+    return supabase;
+}
 
 export const createUploadRoute = (authDep: AuthDependency, db: PrismaClient) => {
     const upload = new Hono<AuthContext>();
     const { requireAuth } = createAuthMiddleware(authDep);
-    const isProduction = process.env.NODE_ENV === "production";
-
-    let supabase: ReturnType<typeof createClient> | null = null;
-
-    function getSupabaseClient() {
-        if (!process.env.SUPABASE_URL) {
-            throw new Error("SUPABASE_URL environment variable is required");
-        }
-        if (!process.env.SUPABASE_ANON_KEY) {
-            throw new Error("SUPABASE_ANON_KEY environment variable is required");
-        }
-
-        if (!supabase) {
-            supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
-        }
-
-        return supabase;
-    }
 
 // Allowed image types
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif"];
@@ -91,7 +88,7 @@ function isSafeUploadPath(pathValue: string): boolean {
 // ============================================
 // UPLOAD IMAGE
 // ============================================
-upload.post("/image", requireAuth, async (c) => {
+upload.post("/image", uploadRateLimit, requireAuth, async (c) => {
     try {
         const user = c.get("user");
         const formData = await c.req.formData();
@@ -197,7 +194,7 @@ upload.post("/image", requireAuth, async (c) => {
 // ============================================
 // DELETE IMAGE
 // ============================================
-upload.delete("/image", requireAuth, async (c) => {
+upload.delete("/image", uploadRateLimit, requireAuth, async (c) => {
     try {
         const user = c.get("user");
         const data = await validateBody(c, deleteUploadSchema);

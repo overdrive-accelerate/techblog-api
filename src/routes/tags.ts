@@ -5,6 +5,7 @@ import { validateBody, validateParams } from "@/utils/validation";
 import { createTagSchema, updateTagSchema } from "@/schemas/post.schema";
 import { generateUniqueTagSlug } from "@/utils/slug";
 import { idParamSchema, tagSlugParamSchema } from "@/schemas/params.schema";
+import { writeRateLimit } from "@/middleware/rate-limit";
 
 export const createTagsRoute = (db: PrismaClient, authDep: AuthDependency) => {
     const tags = new Hono<AuthContext>();
@@ -100,7 +101,7 @@ export const createTagsRoute = (db: PrismaClient, authDep: AuthDependency) => {
     // ============================================
     // CREATE TAG (ADMIN only)
     // ============================================
-    tags.post("/", requireAuth, requireRole("ADMIN"), async (c) => {
+    tags.post("/", writeRateLimit, requireAuth, requireRole("ADMIN"), async (c) => {
         const data = await validateBody(c, createTagSchema);
 
         // Check if tag already exists
@@ -132,7 +133,7 @@ export const createTagsRoute = (db: PrismaClient, authDep: AuthDependency) => {
     // ============================================
     // UPDATE TAG (ADMIN only)
     // ============================================
-    tags.put("/:id", requireAuth, requireRole("ADMIN"), async (c) => {
+    tags.put("/:id", writeRateLimit, requireAuth, requireRole("ADMIN"), async (c) => {
         const params = validateParams(c, idParamSchema);
         const tagId = params.id;
         const data = await validateBody(c, updateTagSchema);
@@ -178,7 +179,7 @@ export const createTagsRoute = (db: PrismaClient, authDep: AuthDependency) => {
     // ============================================
     // DELETE TAG (ADMIN only)
     // ============================================
-    tags.delete("/:id", requireAuth, requireRole("ADMIN"), async (c) => {
+    tags.delete("/:id", writeRateLimit, requireAuth, requireRole("ADMIN"), async (c) => {
         const params = validateParams(c, idParamSchema);
         const tagId = params.id;
 
