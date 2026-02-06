@@ -42,7 +42,6 @@ export * from "./mocks/auth";
 export * from "./mocks/supabase";
 
 // Import for cleanup in afterEach
-import { prismaMock } from "./mocks/prisma";
 import { mockAuth } from "./mocks/auth";
 import { resetSupabaseMocks } from "./mocks/supabase";
 import { clearRateLimitStore, setSkipRateLimitForTests } from "../../src/middleware/rate-limit";

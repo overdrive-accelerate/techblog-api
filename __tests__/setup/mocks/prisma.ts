@@ -32,7 +32,8 @@ export const prismaMock = mockModule.prismaMock;
 export type MockPrismaClient = typeof prismaMock;
 
 // Note: Each test should set up its mock expectations using .mockResolvedValue() etc.
-// No global clearing is needed since mockDeep creates fresh mock proxies for each method call
+// Tests that need to check call counts should manually call .mockClear() in beforeEach
+// NEVER use vi.clearAllMocks() as it breaks the manual Prisma mocks
 
 // Re-export enums for convenience
 export { Role, PostStatus, PublishRequestStatus };

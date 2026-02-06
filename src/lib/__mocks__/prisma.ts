@@ -11,8 +11,31 @@ import type { PrismaClient } from "../../../generated/prisma/client.ts";
  * This ensures .mockResolvedValue() and other mock methods work correctly.
  */
 
+/**
+ * Type for a Prisma model delegate mock
+ */
+interface PrismaModelMock {
+    findUnique: ReturnType<typeof vi.fn>;
+    findUniqueOrThrow: ReturnType<typeof vi.fn>;
+    findFirst: ReturnType<typeof vi.fn>;
+    findFirstOrThrow: ReturnType<typeof vi.fn>;
+    findMany: ReturnType<typeof vi.fn>;
+    create: ReturnType<typeof vi.fn>;
+    createMany: ReturnType<typeof vi.fn>;
+    createManyAndReturn: ReturnType<typeof vi.fn>;
+    delete: ReturnType<typeof vi.fn>;
+    update: ReturnType<typeof vi.fn>;
+    deleteMany: ReturnType<typeof vi.fn>;
+    updateMany: ReturnType<typeof vi.fn>;
+    upsert: ReturnType<typeof vi.fn>;
+    count: ReturnType<typeof vi.fn>;
+    aggregate: ReturnType<typeof vi.fn>;
+    groupBy: ReturnType<typeof vi.fn>;
+    fields: Record<string, never>;
+}
+
 // Helper to create a mock for a Prisma model delegate
-const createModelMock = () => ({
+const createModelMock = (): PrismaModelMock => ({
     findUnique: vi.fn(),
     findUniqueOrThrow: vi.fn(),
     findFirst: vi.fn(),

@@ -308,9 +308,14 @@ describe("Upload Route", () => {
                 headers: { Cookie: "better-auth.session_token=test-token" },
                 body: formData,
             });
+            const body: any = await res.json();
 
             expect(res.status).toBe(200);
-            // Verify sanitization was called (check via mock or path structure)
+            // Verify the resulting path doesn't contain path traversal sequences
+            expect(body.path).toBeDefined();
+            expect(body.path).not.toContain("..");
+            expect(body.path).not.toContain("etc/passwd");
+            expect(body.path).toMatch(/^blog-images\//);
         });
 
         it("should handle Supabase upload errors", async () => {

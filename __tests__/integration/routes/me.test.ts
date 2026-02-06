@@ -10,6 +10,20 @@ import {
 // Import after mocks are registered by setup
 import { createMeRoute } from "../../../src/routes/me";
 
+// Response type interfaces
+interface MeResponse {
+    user: {
+        id: string;
+        email: string;
+        name: string;
+        role: string;
+        emailVerified: boolean;
+    };
+    session: {
+        expiresAt: string;
+    };
+}
+
 // Helper to create test app
 const createApp = () => {
     const app = new Hono();
@@ -47,7 +61,7 @@ describe("Me Route", () => {
             const res = await app.request("/api/me", {
                 headers: { Cookie: "better-auth.session_token=test-token" },
             });
-            const body: any = await res.json();
+            const body = await res.json() as MeResponse;
 
             expect(res.status).toBe(200);
             expect(body.user).toBeDefined();
@@ -74,13 +88,13 @@ describe("Me Route", () => {
             const res = await app.request("/api/me", {
                 headers: { Cookie: "better-auth.session_token=test-token" },
             });
-            const body: any = await res.json();
+            const body = await res.json() as MeResponse & { user: Record<string, unknown> };
 
             expect(res.status).toBe(200);
             // Ensure no password or other sensitive fields
-            expect(body.user.password).toBeUndefined();
-            expect(body.user.createdAt).toBeUndefined();
-            expect(body.user.updatedAt).toBeUndefined();
+            expect((body.user as any).password).toBeUndefined();
+            expect((body.user as any).createdAt).toBeUndefined();
+            expect((body.user as any).updatedAt).toBeUndefined();
             // Only expose necessary fields
             expect(Object.keys(body.user).sort()).toEqual(
                 ["id", "email", "name", "role", "emailVerified"].sort()
@@ -93,7 +107,7 @@ describe("Me Route", () => {
             const res = await app.request("/api/me", {
                 headers: { Cookie: "better-auth.session_token=test-token" },
             });
-            const body: any = await res.json();
+            const body = await res.json() as MeResponse;
 
             expect(res.status).toBe(200);
             expect(body.session).toBeDefined();

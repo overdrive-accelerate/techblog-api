@@ -3,6 +3,7 @@ import { slugify, generateUniqueSlug, generateUniqueTagSlug } from "../../../src
 import { prismaMock } from "../../setup/mocks/prisma";
 
 // Helper to get mock methods with proper typing
+// Note: Uses 'any' for flexibility with Prisma's complex generated types
 type MockedFunction = ReturnType<typeof vi.fn>;
 const getMock = (fn: any): MockedFunction => fn as MockedFunction;
 
