@@ -23,23 +23,12 @@ vi.mock("@/utils/sanitize", () => ({
     escapeHtml: vi.fn((text: string) => text),
 }));
 
-// Mock env config
-vi.mock("@/config/env", () => ({
-    getEnv: vi.fn(() => ({
-        NODE_ENV: "test",
-        SUPABASE_URL: "https://test.supabase.co",
-        SUPABASE_ANON_KEY: "test-anon-key",
-        DATABASE_URL: "postgresql://test:test@localhost:5432/test",
-        DIRECT_URL: "postgresql://test:test@localhost:5432/test",
-        BETTER_AUTH_SECRET: "test-secret",
-        BETTER_AUTH_URL: "http://localhost:3001",
-        FRONTEND_URL: "http://localhost:3000",
-        PORT: 3001,
-    })),
-}));
-
 // Import after mocks are registered by setup
 import { createUploadRoute } from "../../../src/routes/upload";
+import { validateEnv } from "../../../src/config/env";
+
+// Initialize env validation for this test file (uses process.env set in test-utils.ts)
+validateEnv();
 
 // Helper to create test app
 const createApp = () => {
@@ -106,7 +95,13 @@ describe("Upload Route", () => {
     let app: ReturnType<typeof createApp>;
 
     beforeEach(() => {
-        vi.clearAllMocks();
+        // DO NOT call vi.clearAllMocks() - it breaks manual Prisma mocks
+        // Instead, clear only the mocks owned by this test file
+        getMock(prismaMock.upload.create).mockClear();
+        getMock(prismaMock.upload.findUnique).mockClear();
+        getMock(prismaMock.upload.delete).mockClear();
+        mockSupabaseStorage.from.mockClear();
+
         app = createApp();
     });
 
