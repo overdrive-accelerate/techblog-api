@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import { Hono } from "hono";
-import { rateLimiter } from "../../../src/middleware/rate-limit";
+import { rateLimiter, setSkipRateLimitForTests } from "../../../src/middleware/rate-limit";
 
 interface RateLimitResponse {
     error?: string;
@@ -21,12 +21,16 @@ describe("rate-limit middleware", () => {
         vi.useFakeTimers();
         // Enable TRUST_PROXY so x-forwarded-for headers are respected
         process.env.TRUST_PROXY = "true";
+        // Disable rate limit skipping for unit tests to test actual rate limiting
+        setSkipRateLimitForTests(false);
     });
 
     afterEach(() => {
         vi.useRealTimers();
-        // Restore original value
+        // Restore original values
         process.env.TRUST_PROXY = originalTrustProxy;
+        // Re-enable rate limit skipping for other tests
+        setSkipRateLimitForTests(true);
     });
 
     describe("rateLimiter", () => {
