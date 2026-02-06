@@ -7,6 +7,13 @@ import { logger } from "@/utils/logger";
  * Automatically uses Redis when available, falls back to in-memory for development
  */
 
+// Global flag to skip rate limiting in tests (set by test setup)
+let skipRateLimitForTests = false;
+
+export function setSkipRateLimitForTests(skip: boolean) {
+    skipRateLimitForTests = skip;
+}
+
 interface RateLimitEntry {
     count: number;
     resetTime: number;
@@ -51,6 +58,11 @@ export function rateLimiter(options: RateLimitOptions) {
     } = options;
 
     return async (c: Context, next: Next) => {
+        // Skip rate limiting in integration tests (but not unit tests)
+        if (skipRateLimitForTests) {
+            return next();
+        }
+
         // Skip if configured
         if (skip && skip(c)) {
             return next();
@@ -268,3 +280,10 @@ export const emailRateLimit = rateLimiter({
     windowMs: process.env.NODE_ENV === "development" ? 60 * 1000 : 15 * 60 * 1000, // 1 min in dev, 15 min in prod
     message: "Too many email requests, please try again later",
 });
+
+/**
+ * Clear the in-memory rate limit store (for testing purposes)
+ */
+export function clearRateLimitStore() {
+    rateLimitStore.clear();
+}

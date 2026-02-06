@@ -1,5 +1,4 @@
 import { vi } from "vitest";
-import { type DeepMockProxy } from "vitest-mock-extended";
 import type { PrismaClient } from "../../../generated/prisma/client.js";
 import type {
     User,
@@ -15,25 +14,22 @@ import {
     PublishRequestStatus,
 } from "../../../generated/prisma/client.js";
 
-// Register the mock - use async factory to dynamically import the mock module
-// This is the original working pattern before the "fix" was attempted
+// Register the mock using vi.mock
+// This replaces the real @/lib/prisma module with our mock implementation
 vi.mock("@/lib/prisma", async () => {
-    const { prismaMock, pool, disconnectDatabase } = await import("../../../src/lib/__mocks__/prisma.js");
+    const mockModule = await import("../../../src/lib/__mocks__/prisma.js");
     return {
-        prisma: prismaMock,
-        prismaMock,
-        pool,
-        disconnectDatabase,
+        prisma: mockModule.prismaMock,
+        prismaMock: mockModule.prismaMock,
+        pool: mockModule.pool,
+        disconnectDatabase: mockModule.disconnectDatabase,
     };
 });
 
-// Now import and re-export the mock for use in tests
+// Import and re-export the mock for use in tests
 const mockModule = await import("../../../src/lib/__mocks__/prisma.js");
-const prismaMock = mockModule.prismaMock;
-
-// Export the mock for use in tests
-export { prismaMock };
-export type MockPrismaClient = DeepMockProxy<PrismaClient>;
+export const prismaMock = mockModule.prismaMock;
+export type MockPrismaClient = typeof prismaMock;
 
 // Note: Each test should set up its mock expectations using .mockResolvedValue() etc.
 // No global clearing is needed since mockDeep creates fresh mock proxies for each method call

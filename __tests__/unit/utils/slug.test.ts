@@ -1,6 +1,10 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { slugify, generateUniqueSlug, generateUniqueTagSlug } from "../../../src/utils/slug";
 import { prismaMock } from "../../setup/mocks/prisma";
+
+// Helper to get mock methods with proper typing
+type MockedFunction = ReturnType<typeof vi.fn>;
+const getMock = (fn: any): MockedFunction => fn as MockedFunction;
 
 describe("slug utilities", () => {
 
@@ -64,7 +68,7 @@ describe("slug utilities", () => {
 
     describe("generateUniqueSlug", () => {
         it("should return base slug when no existing post found", async () => {
-            prismaMock.post.findUnique.mockResolvedValue(null);
+            getMock(prismaMock.post.findUnique).mockResolvedValue(null);
 
             const result = await generateUniqueSlug("My New Post", undefined, prismaMock);
 
@@ -76,7 +80,8 @@ describe("slug utilities", () => {
         });
 
         it("should append number when slug exists", async () => {
-            prismaMock.post.findUnique
+            getMock(prismaMock.post.findUnique).mockClear();
+            getMock(prismaMock.post.findUnique)
                 .mockResolvedValueOnce({ id: "existing-id" } as never)
                 .mockResolvedValueOnce(null);
 
@@ -87,7 +92,8 @@ describe("slug utilities", () => {
         });
 
         it("should increment counter until unique slug found", async () => {
-            prismaMock.post.findUnique
+            getMock(prismaMock.post.findUnique).mockClear();
+            getMock(prismaMock.post.findUnique)
                 .mockResolvedValueOnce({ id: "id-1" } as never)
                 .mockResolvedValueOnce({ id: "id-2" } as never)
                 .mockResolvedValueOnce({ id: "id-3" } as never)
@@ -101,7 +107,7 @@ describe("slug utilities", () => {
 
         it("should return base slug when excludeId matches existing post", async () => {
             const postId = "my-post-id";
-            prismaMock.post.findUnique.mockResolvedValue({ id: postId } as never);
+            getMock(prismaMock.post.findUnique).mockResolvedValue({ id: postId } as never);
 
             const result = await generateUniqueSlug("My Post", postId, prismaMock);
 
@@ -109,7 +115,7 @@ describe("slug utilities", () => {
         });
 
         it("should continue searching when excludeId does not match", async () => {
-            prismaMock.post.findUnique
+            getMock(prismaMock.post.findUnique)
                 .mockResolvedValueOnce({ id: "different-id" } as never)
                 .mockResolvedValueOnce(null);
 
@@ -119,7 +125,7 @@ describe("slug utilities", () => {
         });
 
         it("should handle empty title", async () => {
-            prismaMock.post.findUnique.mockResolvedValue(null);
+            getMock(prismaMock.post.findUnique).mockResolvedValue(null);
 
             const result = await generateUniqueSlug("", undefined, prismaMock);
 
@@ -129,7 +135,7 @@ describe("slug utilities", () => {
 
     describe("generateUniqueTagSlug", () => {
         it("should return base slug when no existing tag found", async () => {
-            prismaMock.tag.findUnique.mockResolvedValue(null);
+            getMock(prismaMock.tag.findUnique).mockResolvedValue(null);
 
             const result = await generateUniqueTagSlug("JavaScript", undefined, prismaMock);
 
@@ -141,7 +147,8 @@ describe("slug utilities", () => {
         });
 
         it("should append number when tag slug exists", async () => {
-            prismaMock.tag.findUnique
+            getMock(prismaMock.tag.findUnique).mockClear();
+            getMock(prismaMock.tag.findUnique)
                 .mockResolvedValueOnce({ id: "existing-tag-id" } as never)
                 .mockResolvedValueOnce(null);
 
@@ -152,7 +159,8 @@ describe("slug utilities", () => {
         });
 
         it("should increment counter until unique tag slug found", async () => {
-            prismaMock.tag.findUnique
+            getMock(prismaMock.tag.findUnique).mockClear();
+            getMock(prismaMock.tag.findUnique)
                 .mockResolvedValueOnce({ id: "id-1" } as never)
                 .mockResolvedValueOnce({ id: "id-2" } as never)
                 .mockResolvedValueOnce(null);
@@ -165,7 +173,7 @@ describe("slug utilities", () => {
 
         it("should return base slug when excludeId matches existing tag", async () => {
             const tagId = "my-tag-id";
-            prismaMock.tag.findUnique.mockResolvedValue({ id: tagId } as never);
+            getMock(prismaMock.tag.findUnique).mockResolvedValue({ id: tagId } as never);
 
             const result = await generateUniqueTagSlug("TypeScript", tagId, prismaMock);
 
@@ -173,7 +181,7 @@ describe("slug utilities", () => {
         });
 
         it("should continue searching when excludeId does not match", async () => {
-            prismaMock.tag.findUnique
+            getMock(prismaMock.tag.findUnique)
                 .mockResolvedValueOnce({ id: "different-id" } as never)
                 .mockResolvedValueOnce(null);
 
@@ -183,7 +191,7 @@ describe("slug utilities", () => {
         });
 
         it("should handle multi-word tag names", async () => {
-            prismaMock.tag.findUnique.mockResolvedValue(null);
+            getMock(prismaMock.tag.findUnique).mockResolvedValue(null);
 
             const result = await generateUniqueTagSlug("Machine Learning", undefined, prismaMock);
 

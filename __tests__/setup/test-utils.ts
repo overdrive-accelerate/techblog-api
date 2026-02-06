@@ -45,7 +45,10 @@ export * from "./mocks/supabase";
 import { prismaMock } from "./mocks/prisma";
 import { mockAuth } from "./mocks/auth";
 import { resetSupabaseMocks } from "./mocks/supabase";
-import { mockReset } from "vitest-mock-extended";
+import { clearRateLimitStore, setSkipRateLimitForTests } from "../../src/middleware/rate-limit";
+
+// Skip rate limiting in integration tests to prevent 429 errors
+setSkipRateLimitForTests(true);
 
 // ============================================
 // Global Test Hooks
@@ -55,16 +58,19 @@ afterEach(() => {
     // Restore real timers if fake timers were used
     vi.useRealTimers();
 
-    // Reset all mocks to prevent test pollution
-    // We use mockReset from vitest-mock-extended to properly reset DeepMockProxy instances
-    // This clears call history and resets mock implementations to their defaults
-    mockReset(prismaMock);
+    // Note: We do NOT call vi.clearAllMocks(), mockReset(), or any global mock clearing here
+    // because it breaks manual Prisma mocks (Bun+Vitest incompatibility with vitest-mock-extended).
+    // The vitest config has clearMocks: false, restoreMocks: false, mockReset: false.
+    // Each test is responsible for setting up its own mock expectations.
 
     // Reset auth mock to default unauthenticated state
     mockAuth.api.getSession.mockResolvedValue(null);
 
     // Reset Supabase mocks (storage + auth)
     resetSupabaseMocks();
+
+    // Clear rate limit store (in-memory cache)
+    clearRateLimitStore();
 
     // Reset ID counter for consistent test IDs across test runs
     resetIdCounter();
