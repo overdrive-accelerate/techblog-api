@@ -123,7 +123,7 @@ describe("Email Service", () => {
             });
 
             await expect(sendVerificationEmail(testEmail, testUrl, testToken)).rejects.toThrow(
-                "Failed to send verification email: Invalid email address"
+                "Failed to send verification email: Invalid email address",
             );
         });
 
@@ -144,7 +144,7 @@ describe("Email Service", () => {
             expect(mockResendSend).toHaveBeenCalledWith(
                 expect.objectContaining({
                     to: "",
-                })
+                }),
             );
         });
     });
@@ -225,7 +225,7 @@ describe("Email Service", () => {
             });
 
             await expect(sendResetPasswordEmail(testEmail, testUrl, testToken)).rejects.toThrow(
-                "Failed to send password reset email: Too many requests"
+                "Failed to send password reset email: Too many requests",
             );
         });
 

@@ -52,7 +52,7 @@ describe("security middleware", () => {
         it("should add Content-Security-Policy header", async () => {
             const res = await app.request("/test");
             expect(res.headers.get("Content-Security-Policy")).toBe(
-                "default-src 'none'; frame-ancestors 'none'; form-action 'none'"
+                "default-src 'none'; frame-ancestors 'none'; form-action 'none'",
             );
         });
 
@@ -67,18 +67,14 @@ describe("security middleware", () => {
 
         it("should add cache control headers for /api/me paths", async () => {
             const res = await app.request("/api/me/profile");
-            expect(res.headers.get("Cache-Control")).toBe(
-                "no-store, no-cache, must-revalidate, proxy-revalidate"
-            );
+            expect(res.headers.get("Cache-Control")).toBe("no-store, no-cache, must-revalidate, proxy-revalidate");
             expect(res.headers.get("Pragma")).toBe("no-cache");
             expect(res.headers.get("Expires")).toBe("0");
         });
 
         it("should add cache control headers for /api/auth paths", async () => {
             const res = await app.request("/api/auth/session");
-            expect(res.headers.get("Cache-Control")).toBe(
-                "no-store, no-cache, must-revalidate, proxy-revalidate"
-            );
+            expect(res.headers.get("Cache-Control")).toBe("no-store, no-cache, must-revalidate, proxy-revalidate");
         });
 
         it("should not add cache control headers for regular paths", async () => {
@@ -96,9 +92,7 @@ describe("security middleware", () => {
             prodApp.get("/test", (c) => c.json({ success: true }));
 
             const res = await prodApp.request("/test");
-            expect(res.headers.get("Strict-Transport-Security")).toBe(
-                "max-age=31536000; includeSubDomains; preload"
-            );
+            expect(res.headers.get("Strict-Transport-Security")).toBe("max-age=31536000; includeSubDomains; preload");
 
             Object.assign(process.env, { NODE_ENV: originalEnv });
         });
@@ -164,9 +158,7 @@ describe("security middleware", () => {
             });
 
             it("should block data:text/html in query params", async () => {
-                const res = await app.request(
-                    "/test?content=data:text/html,<script>alert(1)</script>"
-                );
+                const res = await app.request("/test?content=data:text/html,<script>alert(1)</script>");
                 expect(res.status).toBe(400);
             });
 

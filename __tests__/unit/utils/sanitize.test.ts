@@ -38,7 +38,7 @@ describe("sanitize utilities", () => {
 
         it("should escape multiple dangerous characters together", () => {
             expect(escapeHtml('<script>alert("xss")</script>')).toBe(
-                "&lt;script&gt;alert(&quot;xss&quot;)&lt;&#x2F;script&gt;"
+                "&lt;script&gt;alert(&quot;xss&quot;)&lt;&#x2F;script&gt;",
             );
         });
 
@@ -99,9 +99,7 @@ describe("sanitize utilities", () => {
         });
 
         it("should remove form tags", () => {
-            expect(sanitizeMarkdown('<form action="phishing.com"><input type="text"></form>')).toBe(
-                ""
-            );
+            expect(sanitizeMarkdown('<form action="phishing.com"><input type="text"></form>')).toBe("");
         });
 
         it("should remove style tags", () => {
@@ -113,9 +111,7 @@ describe("sanitize utilities", () => {
         });
 
         it("should remove meta tags", () => {
-            expect(sanitizeMarkdown('<meta http-equiv="refresh" content="0;url=evil.com">')).toBe(
-                ""
-            );
+            expect(sanitizeMarkdown('<meta http-equiv="refresh" content="0;url=evil.com">')).toBe("");
         });
 
         it("should remove base tags", () => {
@@ -123,7 +119,7 @@ describe("sanitize utilities", () => {
         });
 
         it("should remove button tags", () => {
-            expect(sanitizeMarkdown("<button onclick=\"evil()\">Click</button>")).toBe("");
+            expect(sanitizeMarkdown('<button onclick="evil()">Click</button>')).toBe("");
         });
 
         it("should remove select tags", () => {
@@ -135,15 +131,11 @@ describe("sanitize utilities", () => {
         });
 
         it("should remove event handlers from remaining HTML", () => {
-            expect(sanitizeMarkdown('<img src="cat.jpg" onerror="alert(1)">')).toBe(
-                '<img src="cat.jpg">'
-            );
+            expect(sanitizeMarkdown('<img src="cat.jpg" onerror="alert(1)">')).toBe('<img src="cat.jpg">');
         });
 
         it("should remove event handlers without quotes", () => {
-            expect(sanitizeMarkdown("<div onmouseover=evil()>content</div>")).toBe(
-                "<div>content</div>"
-            );
+            expect(sanitizeMarkdown("<div onmouseover=evil()>content</div>")).toBe("<div>content</div>");
         });
 
         it("should remove javascript: URLs", () => {
@@ -243,9 +235,7 @@ describe("sanitize utilities", () => {
         });
 
         it("should return valid https URLs", () => {
-            expect(sanitizeUrl("https://example.com/path?query=1")).toBe(
-                "https://example.com/path?query=1"
-            );
+            expect(sanitizeUrl("https://example.com/path?query=1")).toBe("https://example.com/path?query=1");
         });
 
         it("should return null for invalid URLs", () => {
@@ -269,15 +259,11 @@ describe("sanitize utilities", () => {
         });
 
         it("should handle URLs with ports", () => {
-            expect(sanitizeUrl("https://example.com:8080/api")).toBe(
-                "https://example.com:8080/api"
-            );
+            expect(sanitizeUrl("https://example.com:8080/api")).toBe("https://example.com:8080/api");
         });
 
         it("should handle URLs with fragments", () => {
-            expect(sanitizeUrl("https://example.com/page#section")).toBe(
-                "https://example.com/page#section"
-            );
+            expect(sanitizeUrl("https://example.com/page#section")).toBe("https://example.com/page#section");
         });
     });
 
@@ -383,9 +369,7 @@ describe("sanitize utilities", () => {
         it("should escape HTML when option is set", () => {
             const input = { content: "<script>alert(1)</script>" };
             const result = sanitizeObject(input, { escapeHtml: true });
-            expect(result.content).toBe(
-                "&lt;script&gt;alert(1)&lt;&#x2F;script&gt;"
-            );
+            expect(result.content).toBe("&lt;script&gt;alert(1)&lt;&#x2F;script&gt;");
         });
 
         it("should apply both strip and escape HTML", () => {

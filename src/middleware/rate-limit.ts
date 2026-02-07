@@ -101,17 +101,22 @@ export function rateLimiter(options: RateLimitOptions) {
             } catch (error) {
                 // In production, fail closed - do not fall back to in-memory
                 if (process.env.NODE_ENV === "production") {
-                    logger.error("Redis rate limit error in production - rejecting request", error instanceof Error ? error : new Error(String(error)));
+                    logger.error(
+                        "Redis rate limit error in production - rejecting request",
+                        error instanceof Error ? error : new Error(String(error)),
+                    );
                     return c.json(
                         {
                             error: "Service temporarily unavailable",
                             message: "Rate limiting service is unavailable. Please try again later.",
                         },
-                        503
+                        503,
                     );
                 }
                 // In development, fall back to in-memory with warning
-                logger.warn("Redis rate limit error in development, falling back to in-memory", { error: String(error) });
+                logger.warn("Redis rate limit error in development, falling back to in-memory", {
+                    error: String(error),
+                });
                 return handleInMemoryRateLimit(c, next, key, limit, windowMs, message);
             }
         } else {
@@ -137,7 +142,7 @@ export function rateLimiter(options: RateLimitOptions) {
                     message,
                     retryAfter: resetSeconds,
                 },
-                429
+                429,
             );
         }
 
@@ -154,7 +159,7 @@ function handleInMemoryRateLimit(
     key: string,
     limit: number,
     windowMs: number,
-    message: string
+    message: string,
 ) {
     const now = Date.now();
     let entry = rateLimitStore.get(key);
@@ -188,7 +193,7 @@ function handleInMemoryRateLimit(
                 message,
                 retryAfter: resetSeconds,
             },
-            429
+            429,
         );
     }
 

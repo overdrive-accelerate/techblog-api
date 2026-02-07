@@ -1,11 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
-import {
-    setupAuthorAuth,
-    setupUnauthenticated,
-    mockAuth,
-} from "../../setup/mocks/auth";
+import { setupAuthorAuth, setupUnauthenticated, mockAuth } from "../../setup/mocks/auth";
 
 // Import after mocks are registered by setup
 import { createMeRoute } from "../../../src/routes/me";
@@ -61,7 +57,7 @@ describe("Me Route", () => {
             const res = await app.request("/api/me", {
                 headers: { Cookie: "better-auth.session_token=test-token" },
             });
-            const body = await res.json() as MeResponse;
+            const body = (await res.json()) as MeResponse;
 
             expect(res.status).toBe(200);
             expect(body.user).toBeDefined();
@@ -88,7 +84,7 @@ describe("Me Route", () => {
             const res = await app.request("/api/me", {
                 headers: { Cookie: "better-auth.session_token=test-token" },
             });
-            const body = await res.json() as MeResponse & { user: Record<string, unknown> };
+            const body = (await res.json()) as MeResponse & { user: Record<string, unknown> };
 
             expect(res.status).toBe(200);
             // Ensure no password or other sensitive fields
@@ -96,9 +92,7 @@ describe("Me Route", () => {
             expect((body.user as any).createdAt).toBeUndefined();
             expect((body.user as any).updatedAt).toBeUndefined();
             // Only expose necessary fields
-            expect(Object.keys(body.user).sort()).toEqual(
-                ["id", "email", "name", "role", "emailVerified"].sort()
-            );
+            expect(Object.keys(body.user).sort()).toEqual(["id", "email", "name", "role", "emailVerified"].sort());
         });
 
         it("should include session expiration", async () => {
@@ -107,7 +101,7 @@ describe("Me Route", () => {
             const res = await app.request("/api/me", {
                 headers: { Cookie: "better-auth.session_token=test-token" },
             });
-            const body = await res.json() as MeResponse;
+            const body = (await res.json()) as MeResponse;
 
             expect(res.status).toBe(200);
             expect(body.session).toBeDefined();

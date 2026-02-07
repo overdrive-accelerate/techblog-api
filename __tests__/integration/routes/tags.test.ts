@@ -2,12 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import type { Tag } from "../../../generated/prisma/client.js";
-import {
-    setupAdminAuth,
-    setupReaderAuth,
-    setupUnauthenticated,
-    mockAuth,
-} from "../../setup/mocks/auth";
+import { setupAdminAuth, setupReaderAuth, setupUnauthenticated, mockAuth } from "../../setup/mocks/auth";
 import { prismaMock } from "../../setup/mocks/prisma";
 
 // Slug mock is registered globally in test-utils setup

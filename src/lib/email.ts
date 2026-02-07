@@ -14,9 +14,7 @@ function getResendClient(): Resend {
     if (!resend) {
         // Use process.env directly in tests, getEnv() in production
         // This allows tests to mock environment without complex getEnv mocking
-        const apiKey = process.env.NODE_ENV === "test"
-            ? process.env.RESEND_API_KEY
-            : getEnv().RESEND_API_KEY;
+        const apiKey = process.env.NODE_ENV === "test" ? process.env.RESEND_API_KEY : getEnv().RESEND_API_KEY;
 
         if (!apiKey) {
             throw new Error("RESEND_API_KEY is not configured");
@@ -120,9 +118,7 @@ function getEmailTemplate(content: string, buttonText: string, buttonUrl: string
  */
 export async function sendVerificationEmail(email: string, url: string, token: string): Promise<void> {
     // Use process.env directly in tests for easier mocking
-    const fromEmail = process.env.NODE_ENV === "test"
-        ? process.env.RESEND_FROM_EMAIL
-        : getEnv().RESEND_FROM_EMAIL;
+    const fromEmail = process.env.NODE_ENV === "test" ? process.env.RESEND_FROM_EMAIL : getEnv().RESEND_FROM_EMAIL;
 
     if (!fromEmail) {
         throw new Error("RESEND_FROM_EMAIL is not configured");
@@ -156,11 +152,7 @@ export async function sendVerificationEmail(email: string, url: string, token: s
         });
 
         if (result.error) {
-            logger.error(
-                "Failed to send verification email",
-                new Error(result.error.message),
-                { email }
-            );
+            logger.error("Failed to send verification email", new Error(result.error.message), { email });
             throw new Error(`Failed to send verification email: ${result.error.message}`);
         }
 
@@ -170,11 +162,9 @@ export async function sendVerificationEmail(email: string, url: string, token: s
             tokenPreview: token.substring(0, 10) + "...",
         });
     } catch (error) {
-        logger.error(
-            "Error sending verification email",
-            error instanceof Error ? error : new Error(String(error)),
-            { email }
-        );
+        logger.error("Error sending verification email", error instanceof Error ? error : new Error(String(error)), {
+            email,
+        });
         throw error;
     }
 }
@@ -189,9 +179,7 @@ export async function sendVerificationEmail(email: string, url: string, token: s
  */
 export async function sendResetPasswordEmail(email: string, url: string, token: string): Promise<void> {
     // Use process.env directly in tests for easier mocking
-    const fromEmail = process.env.NODE_ENV === "test"
-        ? process.env.RESEND_FROM_EMAIL
-        : getEnv().RESEND_FROM_EMAIL;
+    const fromEmail = process.env.NODE_ENV === "test" ? process.env.RESEND_FROM_EMAIL : getEnv().RESEND_FROM_EMAIL;
 
     if (!fromEmail) {
         throw new Error("RESEND_FROM_EMAIL is not configured");
@@ -230,11 +218,7 @@ export async function sendResetPasswordEmail(email: string, url: string, token: 
         });
 
         if (result.error) {
-            logger.error(
-                "Failed to send password reset email",
-                new Error(result.error.message),
-                { email }
-            );
+            logger.error("Failed to send password reset email", new Error(result.error.message), { email });
             throw new Error(`Failed to send password reset email: ${result.error.message}`);
         }
 
@@ -244,11 +228,9 @@ export async function sendResetPasswordEmail(email: string, url: string, token: 
             tokenPreview: token.substring(0, 10) + "...",
         });
     } catch (error) {
-        logger.error(
-            "Error sending password reset email",
-            error instanceof Error ? error : new Error(String(error)),
-            { email }
-        );
+        logger.error("Error sending password reset email", error instanceof Error ? error : new Error(String(error)), {
+            email,
+        });
         throw error;
     }
 }

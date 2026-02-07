@@ -286,7 +286,7 @@ export const createUsersRoute = (db: PrismaClient, authDep: AuthDependency) => {
             });
 
             return c.json(updatedUser);
-        }
+        },
     );
 
     return users;

@@ -1,17 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import {
-    prismaMock,
-    mockUser,
-    mockPost,
-    mockTag,
-} from "./setup/mocks/prisma";
-import {
-    mockReaderSession,
-    mockAuthorSession,
-    mockAdminSession,
-    setupAuthMock,
-    mockAuth,
-} from "./setup/mocks/auth";
+import { prismaMock, mockUser, mockPost, mockTag } from "./setup/mocks/prisma";
+import { mockReaderSession, mockAuthorSession, mockAdminSession, setupAuthMock, mockAuth } from "./setup/mocks/auth";
 import {
     mockSupabaseStorage,
     simulateUploadSuccess,

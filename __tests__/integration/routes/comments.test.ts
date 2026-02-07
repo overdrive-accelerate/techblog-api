@@ -166,9 +166,7 @@ describe("Comments Route", () => {
                 status: PostStatus.PUBLISHED,
                 authorId: "author1",
             } as never);
-            const mockComments = [
-                { ...createMockComment(), author: createMockAuthor() },
-            ];
+            const mockComments = [{ ...createMockComment(), author: createMockAuthor() }];
             getMock(prismaMock.comment.findMany).mockResolvedValue(mockComments as never);
 
             const res = await app.request("/api/comments/posts/clpost1234567890123456780");

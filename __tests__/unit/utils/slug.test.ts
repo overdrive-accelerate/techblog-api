@@ -8,7 +8,6 @@ type MockedFunction = ReturnType<typeof vi.fn>;
 const getMock = (fn: any): MockedFunction => fn as MockedFunction;
 
 describe("slug utilities", () => {
-
     describe("slugify", () => {
         it("should convert text to lowercase", () => {
             expect(slugify("Hello World")).toBe("hello-world");

@@ -228,7 +228,15 @@ describe("Publish Route", () => {
             const mockRequests = [
                 {
                     ...createMockPublishRequest(),
-                    post: { id: "post1", title: "Post 1", slug: "post-1", excerpt: null, coverImage: null, createdAt: new Date(), updatedAt: new Date() },
+                    post: {
+                        id: "post1",
+                        title: "Post 1",
+                        slug: "post-1",
+                        excerpt: null,
+                        coverImage: null,
+                        createdAt: new Date(),
+                        updatedAt: new Date(),
+                    },
                     author: { id: "author1", name: "Author", email: "author@example.com", image: null },
                 },
             ];

@@ -89,7 +89,7 @@ export const createTestRequest = (
         body?: unknown;
         headers?: Record<string, string>;
         query?: Record<string, string>;
-    } = {}
+    } = {},
 ): Request => {
     const url = new URL(path, "http://localhost:3001");
 
@@ -114,45 +114,32 @@ export const createTestRequest = (
 /**
  * Create a GET request
  */
-export const get = (
-    path: string,
-    options: { headers?: Record<string, string>; query?: Record<string, string> } = {}
-) => createTestRequest("GET", path, options);
+export const get = (path: string, options: { headers?: Record<string, string>; query?: Record<string, string> } = {}) =>
+    createTestRequest("GET", path, options);
 
 /**
  * Create a POST request
  */
-export const post = (
-    path: string,
-    body?: unknown,
-    options: { headers?: Record<string, string> } = {}
-) => createTestRequest("POST", path, { body, ...options });
+export const post = (path: string, body?: unknown, options: { headers?: Record<string, string> } = {}) =>
+    createTestRequest("POST", path, { body, ...options });
 
 /**
  * Create a PUT request
  */
-export const put = (
-    path: string,
-    body?: unknown,
-    options: { headers?: Record<string, string> } = {}
-) => createTestRequest("PUT", path, { body, ...options });
+export const put = (path: string, body?: unknown, options: { headers?: Record<string, string> } = {}) =>
+    createTestRequest("PUT", path, { body, ...options });
 
 /**
  * Create a PATCH request
  */
-export const patch = (
-    path: string,
-    body?: unknown,
-    options: { headers?: Record<string, string> } = {}
-) => createTestRequest("PATCH", path, { body, ...options });
+export const patch = (path: string, body?: unknown, options: { headers?: Record<string, string> } = {}) =>
+    createTestRequest("PATCH", path, { body, ...options });
 
 /**
  * Create a DELETE request
  */
-export const del = (
-    path: string,
-    options: { headers?: Record<string, string>; body?: unknown } = {}
-) => createTestRequest("DELETE", path, options);
+export const del = (path: string, options: { headers?: Record<string, string>; body?: unknown } = {}) =>
+    createTestRequest("DELETE", path, options);
 
 // ============================================
 // Response Helpers
@@ -168,15 +155,10 @@ export const parseJson = async <T>(response: Response): Promise<T> => {
 /**
  * Assert response status and parse body
  */
-export const expectStatus = async <T>(
-    response: Response,
-    expectedStatus: number
-): Promise<T> => {
+export const expectStatus = async <T>(response: Response, expectedStatus: number): Promise<T> => {
     if (response.status !== expectedStatus) {
         const body = await response.text();
-        throw new Error(
-            `Expected status ${expectedStatus}, got ${response.status}. Body: ${body}`
-        );
+        throw new Error(`Expected status ${expectedStatus}, got ${response.status}. Body: ${body}`);
     }
     return parseJson<T>(response);
 };
@@ -187,9 +169,7 @@ export const expectStatus = async <T>(
 export const expectSuccess = async <T>(response: Response): Promise<T> => {
     if (response.status < 200 || response.status >= 300) {
         const body = await response.text();
-        throw new Error(
-            `Expected success status, got ${response.status}. Body: ${body}`
-        );
+        throw new Error(`Expected success status, got ${response.status}. Body: ${body}`);
     }
     return parseJson<T>(response);
 };
@@ -199,13 +179,11 @@ export const expectSuccess = async <T>(response: Response): Promise<T> => {
  */
 export const expectError = async (
     response: Response,
-    expectedStatus: number
+    expectedStatus: number,
 ): Promise<{ error: string; details?: unknown }> => {
     if (response.status !== expectedStatus) {
         const body = await response.text();
-        throw new Error(
-            `Expected status ${expectedStatus}, got ${response.status}. Body: ${body}`
-        );
+        throw new Error(`Expected status ${expectedStatus}, got ${response.status}. Body: ${body}`);
     }
     return parseJson(response);
 };
@@ -217,9 +195,7 @@ export const expectError = async (
 /**
  * Create headers with a mock session cookie
  */
-export const withAuth = (
-    headers: Record<string, string> = {}
-): Record<string, string> => ({
+export const withAuth = (headers: Record<string, string> = {}): Record<string, string> => ({
     ...headers,
     Cookie: "better-auth.session_token=test-session-token",
 });
@@ -227,9 +203,7 @@ export const withAuth = (
 /**
  * Create headers without auth (for unauthenticated requests)
  */
-export const withoutAuth = (
-    headers: Record<string, string> = {}
-): Record<string, string> => headers;
+export const withoutAuth = (headers: Record<string, string> = {}): Record<string, string> => headers;
 
 // ============================================
 // Date Helpers
@@ -243,14 +217,12 @@ export const fixedDate = new Date("2024-01-15T12:00:00.000Z");
 /**
  * Create a date relative to the fixed date
  */
-export const daysAgo = (days: number): Date =>
-    new Date(fixedDate.getTime() - days * 24 * 60 * 60 * 1000);
+export const daysAgo = (days: number): Date => new Date(fixedDate.getTime() - days * 24 * 60 * 60 * 1000);
 
 /**
  * Create a date in the future relative to fixed date
  */
-export const daysFromNow = (days: number): Date =>
-    new Date(fixedDate.getTime() + days * 24 * 60 * 60 * 1000);
+export const daysFromNow = (days: number): Date => new Date(fixedDate.getTime() + days * 24 * 60 * 60 * 1000);
 
 // ============================================
 // ID Generators

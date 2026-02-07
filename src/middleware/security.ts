@@ -29,15 +29,12 @@ export async function securityHeaders(c: Context, next: Next) {
     }
 
     // Content Security Policy - restrictive for API
-    c.header(
-        "Content-Security-Policy",
-        "default-src 'none'; frame-ancestors 'none'; form-action 'none'"
-    );
+    c.header("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'; form-action 'none'");
 
     // Permissions Policy - disable unnecessary features
     c.header(
         "Permissions-Policy",
-        "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()"
+        "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()",
     );
 
     // Strict Transport Security (only in production with HTTPS)
@@ -139,7 +136,7 @@ export function bodySizeLimit(maxSizeBytes: number) {
                         maxSize: `${Math.round(maxSizeBytes / 1024 / 1024)}MB`,
                         receivedSize: `${(size / 1024 / 1024).toFixed(2)}MB`,
                     },
-                    413
+                    413,
                 );
             }
         }
