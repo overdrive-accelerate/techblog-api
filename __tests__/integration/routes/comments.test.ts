@@ -13,6 +13,10 @@ import {
 } from "../../setup/mocks/auth";
 import { prismaMock } from "../../setup/mocks/prisma";
 
+// Helper to get mock function with correct type
+type MockedFunction = ReturnType<typeof vi.fn>;
+const getMock = (fn: any): MockedFunction => fn as MockedFunction;
+
 // Mock sanitize utility
 vi.mock("@/utils/sanitize", () => ({
     escapeHtml: vi.fn((text: string) => text),
@@ -80,8 +84,8 @@ describe("Comments Route", () => {
                     post: { id: "post1", title: "Test Post", slug: "test-post", status: PostStatus.PUBLISHED },
                 },
             ];
-            prismaMock.comment.findMany.mockResolvedValue(mockComments as never);
-            prismaMock.comment.count.mockResolvedValue(1);
+            getMock(prismaMock.comment.findMany).mockResolvedValue(mockComments as never);
+            getMock(prismaMock.comment.count).mockResolvedValue(1);
 
             const res = await app.request("/api/comments/all", {
                 headers: { Cookie: "better-auth.session_token=test-token" },
@@ -113,8 +117,8 @@ describe("Comments Route", () => {
 
         it("should support search and filtering", async () => {
             setupAdminAuth();
-            prismaMock.comment.findMany.mockResolvedValue([]);
-            prismaMock.comment.count.mockResolvedValue(0);
+            getMock(prismaMock.comment.findMany).mockResolvedValue([]);
+            getMock(prismaMock.comment.count).mockResolvedValue(0);
 
             const res = await app.request("/api/comments/all?search=test&postId=clpost1234567890123456780", {
                 headers: { Cookie: "better-auth.session_token=test-token" },
@@ -135,7 +139,7 @@ describe("Comments Route", () => {
                     post: { id: "post1", title: "Test Post", slug: "test-post", status: PostStatus.PUBLISHED },
                 },
             ];
-            prismaMock.comment.findMany.mockResolvedValue(mockComments as never);
+            getMock(prismaMock.comment.findMany).mockResolvedValue(mockComments as never);
 
             const res = await app.request("/api/comments/my-comments", {
                 headers: { Cookie: "better-auth.session_token=test-token" },
@@ -158,14 +162,14 @@ describe("Comments Route", () => {
     describe("GET /api/comments/posts/:postId", () => {
         it("should return comments for published post", async () => {
             setupUnauthenticated();
-            prismaMock.post.findUnique.mockResolvedValue({
+            getMock(prismaMock.post.findUnique).mockResolvedValue({
                 status: PostStatus.PUBLISHED,
                 authorId: "author1",
             } as never);
             const mockComments = [
                 { ...createMockComment(), author: createMockAuthor() },
             ];
-            prismaMock.comment.findMany.mockResolvedValue(mockComments as never);
+            getMock(prismaMock.comment.findMany).mockResolvedValue(mockComments as never);
 
             const res = await app.request("/api/comments/posts/clpost1234567890123456780");
             const body: any = await res.json();
@@ -176,7 +180,7 @@ describe("Comments Route", () => {
 
         it("should return 404 when post not found", async () => {
             setupUnauthenticated();
-            prismaMock.post.findUnique.mockResolvedValue(null);
+            getMock(prismaMock.post.findUnique).mockResolvedValue(null);
 
             const res = await app.request("/api/comments/posts/cnotfound1234567890123450");
             const body: any = await res.json();
@@ -187,7 +191,7 @@ describe("Comments Route", () => {
 
         it("should return 404 for draft post when unauthenticated", async () => {
             setupUnauthenticated();
-            prismaMock.post.findUnique.mockResolvedValue({
+            getMock(prismaMock.post.findUnique).mockResolvedValue({
                 status: PostStatus.DRAFT,
                 authorId: "author1",
             } as never);
@@ -201,11 +205,11 @@ describe("Comments Route", () => {
 
         it("should allow admin to see comments on draft post", async () => {
             setupAdminAuth();
-            prismaMock.post.findUnique.mockResolvedValue({
+            getMock(prismaMock.post.findUnique).mockResolvedValue({
                 status: PostStatus.DRAFT,
                 authorId: "different-author",
             } as never);
-            prismaMock.comment.findMany.mockResolvedValue([]);
+            getMock(prismaMock.comment.findMany).mockResolvedValue([]);
 
             const res = await app.request("/api/comments/posts/cldraftpost12345678901234", {
                 headers: { Cookie: "better-auth.session_token=test-token" },
@@ -219,14 +223,14 @@ describe("Comments Route", () => {
         it("should create comment on published post", async () => {
             const readerSession = mockReaderSession();
             setupReaderAuth();
-            prismaMock.post.findUnique.mockResolvedValue({
+            getMock(prismaMock.post.findUnique).mockResolvedValue({
                 status: PostStatus.PUBLISHED,
             } as never);
             const newComment = {
                 ...createMockComment({ authorId: readerSession.user.id }),
                 author: createMockAuthor(),
             };
-            prismaMock.comment.create.mockResolvedValue(newComment as never);
+            getMock(prismaMock.comment.create).mockResolvedValue(newComment as never);
 
             const res = await app.request("/api/comments/posts/clpost1234567890123456780", {
                 method: "POST",
@@ -256,7 +260,7 @@ describe("Comments Route", () => {
 
         it("should return 404 when post not found", async () => {
             setupReaderAuth();
-            prismaMock.post.findUnique.mockResolvedValue(null);
+            getMock(prismaMock.post.findUnique).mockResolvedValue(null);
 
             const res = await app.request("/api/comments/posts/cnotfound1234567890123450", {
                 method: "POST",
@@ -274,7 +278,7 @@ describe("Comments Route", () => {
 
         it("should return 400 when commenting on draft post", async () => {
             setupReaderAuth();
-            prismaMock.post.findUnique.mockResolvedValue({
+            getMock(prismaMock.post.findUnique).mockResolvedValue({
                 status: PostStatus.DRAFT,
             } as never);
 
@@ -319,8 +323,8 @@ describe("Comments Route", () => {
                 author: createMockAuthor(),
             };
 
-            prismaMock.comment.findUnique.mockResolvedValue(existingComment);
-            prismaMock.comment.update.mockResolvedValue(updatedComment as never);
+            getMock(prismaMock.comment.findUnique).mockResolvedValue(existingComment);
+            getMock(prismaMock.comment.update).mockResolvedValue(updatedComment as never);
 
             const res = await app.request(`/api/comments/${existingComment.id}`, {
                 method: "PUT",
@@ -338,7 +342,7 @@ describe("Comments Route", () => {
 
         it("should return 404 when comment not found", async () => {
             setupReaderAuth();
-            prismaMock.comment.findUnique.mockResolvedValue(null);
+            getMock(prismaMock.comment.findUnique).mockResolvedValue(null);
 
             const res = await app.request("/api/comments/cnotfound1234567890123450", {
                 method: "PUT",
@@ -357,7 +361,7 @@ describe("Comments Route", () => {
         it("should return 403 when user is not owner", async () => {
             setupReaderAuth();
             const existingComment = createMockComment({ authorId: "different-user-id" });
-            prismaMock.comment.findUnique.mockResolvedValue(existingComment);
+            getMock(prismaMock.comment.findUnique).mockResolvedValue(existingComment);
 
             const res = await app.request(`/api/comments/${existingComment.id}`, {
                 method: "PUT",
@@ -382,8 +386,8 @@ describe("Comments Route", () => {
                 author: createMockAuthor(),
             };
 
-            prismaMock.comment.findUnique.mockResolvedValue(existingComment);
-            prismaMock.comment.update.mockResolvedValue(updatedComment as never);
+            getMock(prismaMock.comment.findUnique).mockResolvedValue(existingComment);
+            getMock(prismaMock.comment.update).mockResolvedValue(updatedComment as never);
 
             const res = await app.request(`/api/comments/${existingComment.id}`, {
                 method: "PUT",
@@ -404,8 +408,8 @@ describe("Comments Route", () => {
             setupReaderAuth();
             const existingComment = createMockComment({ authorId: readerSession.user.id });
 
-            prismaMock.comment.findUnique.mockResolvedValue(existingComment);
-            prismaMock.comment.delete.mockResolvedValue(existingComment);
+            getMock(prismaMock.comment.findUnique).mockResolvedValue(existingComment);
+            getMock(prismaMock.comment.delete).mockResolvedValue(existingComment);
 
             const res = await app.request(`/api/comments/${existingComment.id}`, {
                 method: "DELETE",
@@ -419,7 +423,7 @@ describe("Comments Route", () => {
 
         it("should return 404 when comment not found", async () => {
             setupReaderAuth();
-            prismaMock.comment.findUnique.mockResolvedValue(null);
+            getMock(prismaMock.comment.findUnique).mockResolvedValue(null);
 
             const res = await app.request("/api/comments/cnotfound1234567890123450", {
                 method: "DELETE",
@@ -434,7 +438,7 @@ describe("Comments Route", () => {
         it("should return 403 when user is not owner", async () => {
             setupReaderAuth();
             const existingComment = createMockComment({ authorId: "different-user-id" });
-            prismaMock.comment.findUnique.mockResolvedValue(existingComment);
+            getMock(prismaMock.comment.findUnique).mockResolvedValue(existingComment);
 
             const res = await app.request(`/api/comments/${existingComment.id}`, {
                 method: "DELETE",
@@ -450,8 +454,8 @@ describe("Comments Route", () => {
             setupAdminAuth();
             const existingComment = createMockComment({ authorId: "different-user-id" });
 
-            prismaMock.comment.findUnique.mockResolvedValue(existingComment);
-            prismaMock.comment.delete.mockResolvedValue(existingComment);
+            getMock(prismaMock.comment.findUnique).mockResolvedValue(existingComment);
+            getMock(prismaMock.comment.delete).mockResolvedValue(existingComment);
 
             const res = await app.request(`/api/comments/${existingComment.id}`, {
                 method: "DELETE",

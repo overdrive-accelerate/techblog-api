@@ -14,6 +14,10 @@ import {
 } from "../../setup/mocks/auth";
 import { prismaMock } from "../../setup/mocks/prisma";
 
+// Helper to get mock function with correct type
+type MockedFunction = ReturnType<typeof vi.fn>;
+const getMock = (fn: any): MockedFunction => fn as MockedFunction;
+
 // Mock sanitize utility
 vi.mock("@/utils/sanitize", () => ({
     sanitizeText: vi.fn((text: string) => text),
@@ -77,7 +81,7 @@ describe("Users Route", () => {
                 profile: { bio: "Test bio", website: "https://example.com" },
                 _count: { posts: 5, comments: 10 },
             };
-            prismaMock.user.findUnique.mockResolvedValue(mockUser as never);
+            getMock(prismaMock.user.findUnique).mockResolvedValue(mockUser as never);
 
             const res = await app.request("/api/users/me", {
                 headers: { Cookie: "better-auth.session_token=test-token" },
@@ -99,7 +103,7 @@ describe("Users Route", () => {
 
         it("should return 404 when user not found in database", async () => {
             setupReaderAuth();
-            prismaMock.user.findUnique.mockResolvedValue(null);
+            getMock(prismaMock.user.findUnique).mockResolvedValue(null);
 
             const res = await app.request("/api/users/me", {
                 headers: { Cookie: "better-auth.session_token=test-token" },
@@ -120,7 +124,7 @@ describe("Users Route", () => {
                 profile: { bio: "Updated bio", website: null },
                 _count: { posts: 5, comments: 10 },
             };
-            prismaMock.user.update.mockResolvedValue(updatedUser as never);
+            getMock(prismaMock.user.update).mockResolvedValue(updatedUser as never);
 
             const res = await app.request("/api/users/me", {
                 method: "PATCH",
@@ -171,8 +175,8 @@ describe("Users Route", () => {
                 { ...createMockUser(), _count: { posts: 3, comments: 5 } },
                 { ...createMockUser({ id: "user2", email: "user2@example.com" }), _count: { posts: 1, comments: 2 } },
             ];
-            prismaMock.user.findMany.mockResolvedValue(mockUsers as never);
-            prismaMock.user.count.mockResolvedValue(2);
+            getMock(prismaMock.user.findMany).mockResolvedValue(mockUsers as never);
+            getMock(prismaMock.user.count).mockResolvedValue(2);
 
             const res = await app.request("/api/users", {
                 headers: { Cookie: "better-auth.session_token=test-token" },
@@ -204,8 +208,8 @@ describe("Users Route", () => {
 
         it("should support search and filtering", async () => {
             setupAdminAuth();
-            prismaMock.user.findMany.mockResolvedValue([]);
-            prismaMock.user.count.mockResolvedValue(0);
+            getMock(prismaMock.user.findMany).mockResolvedValue([]);
+            getMock(prismaMock.user.count).mockResolvedValue(0);
 
             const res = await app.request("/api/users?search=john&role=AUTHOR", {
                 headers: { Cookie: "better-auth.session_token=test-token" },
@@ -223,7 +227,7 @@ describe("Users Route", () => {
                 profile: { bio: "Test bio", website: null },
                 _count: { posts: 5, comments: 10 },
             };
-            prismaMock.user.findUnique.mockResolvedValue(mockUser as never);
+            getMock(prismaMock.user.findUnique).mockResolvedValue(mockUser as never);
 
             const res = await app.request(`/api/users/${mockUser.id}`, {
                 headers: { Cookie: "better-auth.session_token=test-token" },
@@ -235,7 +239,7 @@ describe("Users Route", () => {
 
         it("should return 404 when user not found", async () => {
             setupAdminAuth();
-            prismaMock.user.findUnique.mockResolvedValue(null);
+            getMock(prismaMock.user.findUnique).mockResolvedValue(null);
 
             const res = await app.request("/api/users/cnotfound1234567890123450", {
                 headers: { Cookie: "better-auth.session_token=test-token" },
@@ -266,8 +270,8 @@ describe("Users Route", () => {
                 _count: { posts: 0, comments: 0 },
             };
 
-            prismaMock.user.findUnique.mockResolvedValue(targetUser);
-            prismaMock.user.update.mockResolvedValue(updatedUser as never);
+            getMock(prismaMock.user.findUnique).mockResolvedValue(targetUser);
+            getMock(prismaMock.user.update).mockResolvedValue(updatedUser as never);
 
             const res = await app.request(`/api/users/${targetUser.id}/role`, {
                 method: "PATCH",
@@ -303,7 +307,7 @@ describe("Users Route", () => {
 
         it("should return 404 when user not found", async () => {
             setupAdminAuth();
-            prismaMock.user.findUnique.mockResolvedValue(null);
+            getMock(prismaMock.user.findUnique).mockResolvedValue(null);
 
             const res = await app.request("/api/users/cnotfound1234567890123450/role", {
                 method: "PATCH",
