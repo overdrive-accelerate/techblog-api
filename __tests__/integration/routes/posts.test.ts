@@ -13,6 +13,10 @@ import {
 } from "../../setup/mocks/auth";
 import { prismaMock } from "../../setup/mocks/prisma";
 
+// Helper to get mock function with correct type
+type MockedFunction = ReturnType<typeof vi.fn>;
+const getMock = (fn: any): MockedFunction => fn as MockedFunction;
+
 // Slug mock is registered globally in test-utils setup
 
 // Mock sanitize utility
@@ -97,8 +101,8 @@ describe("Posts Route", () => {
                     _count: { comments: 2 },
                 },
             ];
-            prismaMock.post.findMany.mockResolvedValue(mockPosts as never);
-            prismaMock.post.count.mockResolvedValue(1);
+            getMock(prismaMock.post.findMany).mockResolvedValue(mockPosts as never);
+            getMock(prismaMock.post.count).mockResolvedValue(1);
 
             const res = await app.request("/api/posts");
             const body: any = await res.json();
@@ -111,8 +115,8 @@ describe("Posts Route", () => {
 
         it("should include pagination info", async () => {
             setupUnauthenticated();
-            prismaMock.post.findMany.mockResolvedValue([]);
-            prismaMock.post.count.mockResolvedValue(50);
+            getMock(prismaMock.post.findMany).mockResolvedValue([]);
+            getMock(prismaMock.post.count).mockResolvedValue(50);
 
             const res = await app.request("/api/posts?page=2&limit=10");
             const body: any = await res.json();
@@ -126,19 +130,19 @@ describe("Posts Route", () => {
 
         it("should filter by tag slug", async () => {
             setupUnauthenticated();
-            prismaMock.post.findMany.mockResolvedValue([]);
-            prismaMock.post.count.mockResolvedValue(0);
+            getMock(prismaMock.post.findMany).mockResolvedValue([]);
+            getMock(prismaMock.post.count).mockResolvedValue(0);
 
             const res = await app.request("/api/posts?tagSlug=javascript");
 
             expect(res.status).toBe(200);
-            expect(prismaMock.post.findMany).toHaveBeenCalled();
+            expect(getMock(prismaMock.post.findMany)).toHaveBeenCalled();
         });
 
         it("should filter by featured status", async () => {
             setupUnauthenticated();
-            prismaMock.post.findMany.mockResolvedValue([]);
-            prismaMock.post.count.mockResolvedValue(0);
+            getMock(prismaMock.post.findMany).mockResolvedValue([]);
+            getMock(prismaMock.post.count).mockResolvedValue(0);
 
             const res = await app.request("/api/posts?isFeatured=true");
 
@@ -147,8 +151,8 @@ describe("Posts Route", () => {
 
         it("should support search parameter", async () => {
             setupUnauthenticated();
-            prismaMock.post.findMany.mockResolvedValue([]);
-            prismaMock.post.count.mockResolvedValue(0);
+            getMock(prismaMock.post.findMany).mockResolvedValue([]);
+            getMock(prismaMock.post.count).mockResolvedValue(0);
 
             const res = await app.request("/api/posts?search=typescript");
 
@@ -157,8 +161,8 @@ describe("Posts Route", () => {
 
         it("should allow admin to see all posts with status filter", async () => {
             setupAdminAuth();
-            prismaMock.post.findMany.mockResolvedValue([]);
-            prismaMock.post.count.mockResolvedValue(0);
+            getMock(prismaMock.post.findMany).mockResolvedValue([]);
+            getMock(prismaMock.post.count).mockResolvedValue(0);
 
             const res = await app.request("/api/posts?status=DRAFT", {
                 headers: { Cookie: "better-auth.session_token=test-token" },
@@ -177,8 +181,8 @@ describe("Posts Route", () => {
                 tags: [],
                 comments: [],
             };
-            prismaMock.post.findUnique.mockResolvedValue(mockPost as never);
-            prismaMock.post.update.mockResolvedValue(mockPost as never);
+            getMock(prismaMock.post.findUnique).mockResolvedValue(mockPost as never);
+            getMock(prismaMock.post.update).mockResolvedValue(mockPost as never);
 
             const res = await app.request("/api/posts/test-post");
             const body: any = await res.json();
@@ -195,12 +199,12 @@ describe("Posts Route", () => {
                 tags: [],
                 comments: [],
             };
-            prismaMock.post.findUnique.mockResolvedValue(mockPost as never);
-            prismaMock.post.update.mockResolvedValue(mockPost as never);
+            getMock(prismaMock.post.findUnique).mockResolvedValue(mockPost as never);
+            getMock(prismaMock.post.update).mockResolvedValue(mockPost as never);
 
             await app.request("/api/posts/test-post");
 
-            expect(prismaMock.post.update).toHaveBeenCalledWith({
+            expect(getMock(prismaMock.post.update)).toHaveBeenCalledWith({
                 where: { id: mockPost.id },
                 data: { viewCount: { increment: 1 } },
             });
@@ -208,7 +212,7 @@ describe("Posts Route", () => {
 
         it("should return 404 for non-existent post", async () => {
             setupUnauthenticated();
-            prismaMock.post.findUnique.mockResolvedValue(null);
+            getMock(prismaMock.post.findUnique).mockResolvedValue(null);
 
             const res = await app.request("/api/posts/cnotfound1234567890123450");
             const body: any = await res.json();
@@ -225,7 +229,7 @@ describe("Posts Route", () => {
                 tags: [],
                 comments: [],
             };
-            prismaMock.post.findUnique.mockResolvedValue(mockPost as never);
+            getMock(prismaMock.post.findUnique).mockResolvedValue(mockPost as never);
 
             const res = await app.request("/api/posts/test-post");
             const body: any = await res.json();
@@ -246,7 +250,7 @@ describe("Posts Route", () => {
                 tags: [],
                 comments: [],
             };
-            prismaMock.post.findUnique.mockResolvedValue(mockPost as never);
+            getMock(prismaMock.post.findUnique).mockResolvedValue(mockPost as never);
 
             const res = await app.request("/api/posts/test-post", {
                 headers: { Cookie: "better-auth.session_token=test-token" },
@@ -268,7 +272,7 @@ describe("Posts Route", () => {
                 tags: [],
                 comments: [],
             };
-            prismaMock.post.findUnique.mockResolvedValue(mockPost as never);
+            getMock(prismaMock.post.findUnique).mockResolvedValue(mockPost as never);
 
             const res = await app.request(`/api/posts/by-id/${mockPost.id}`, {
                 headers: { Cookie: "better-auth.session_token=test-token" },
@@ -295,7 +299,7 @@ describe("Posts Route", () => {
                 tags: [],
                 comments: [],
             };
-            prismaMock.post.findUnique.mockResolvedValue(mockPost as never);
+            getMock(prismaMock.post.findUnique).mockResolvedValue(mockPost as never);
 
             const res = await app.request(`/api/posts/by-id/${mockPost.id}`, {
                 headers: { Cookie: "better-auth.session_token=test-token" },
@@ -314,7 +318,7 @@ describe("Posts Route", () => {
                 tags: [],
                 comments: [],
             };
-            prismaMock.post.findUnique.mockResolvedValue(mockPost as never);
+            getMock(prismaMock.post.findUnique).mockResolvedValue(mockPost as never);
 
             const res = await app.request(`/api/posts/by-id/${mockPost.id}`, {
                 headers: { Cookie: "better-auth.session_token=test-token" },
@@ -335,10 +339,10 @@ describe("Posts Route", () => {
             };
 
             // Mock slug uniqueness check
-            prismaMock.post.findUnique.mockResolvedValue(null);
+            getMock(prismaMock.post.findUnique).mockResolvedValue(null);
 
             // Mock transaction
-            prismaMock.$transaction.mockImplementation(async (fn: any) => {
+            getMock(prismaMock.$transaction).mockImplementation(async (fn: any) => {
                 return fn({
                     tag: { findFirst: vi.fn().mockResolvedValue(null), create: vi.fn() },
                     post: { create: vi.fn().mockResolvedValue(newPost) },
@@ -426,8 +430,8 @@ describe("Posts Route", () => {
                 tags: [],
             };
 
-            prismaMock.post.findUnique.mockResolvedValue(existingPost);
-            prismaMock.$transaction.mockImplementation(async (fn: any) => {
+            getMock(prismaMock.post.findUnique).mockResolvedValue(existingPost);
+            getMock(prismaMock.$transaction).mockImplementation(async (fn: any) => {
                 return fn({
                     postTag: { deleteMany: vi.fn() },
                     tag: { findFirst: vi.fn().mockResolvedValue(null), create: vi.fn() },
@@ -451,7 +455,7 @@ describe("Posts Route", () => {
 
         it("should return 404 when post not found", async () => {
             setupAuthorAuth();
-            prismaMock.post.findUnique.mockResolvedValue(null);
+            getMock(prismaMock.post.findUnique).mockResolvedValue(null);
 
             const res = await app.request("/api/posts/cnotfound1234567890123450", {
                 method: "PUT",
@@ -470,7 +474,7 @@ describe("Posts Route", () => {
         it("should return 403 when user is not owner or admin", async () => {
             setupAuthorAuth();
             const existingPost = createMockPost({ authorId: "different-author-id" });
-            prismaMock.post.findUnique.mockResolvedValue(existingPost);
+            getMock(prismaMock.post.findUnique).mockResolvedValue(existingPost);
 
             const res = await app.request(`/api/posts/${existingPost.id}`, {
                 method: "PUT",
@@ -496,8 +500,8 @@ describe("Posts Route", () => {
                 tags: [],
             };
 
-            prismaMock.post.findUnique.mockResolvedValue(existingPost);
-            prismaMock.$transaction.mockImplementation(async (fn: any) => {
+            getMock(prismaMock.post.findUnique).mockResolvedValue(existingPost);
+            getMock(prismaMock.$transaction).mockImplementation(async (fn: any) => {
                 return fn({
                     postTag: { deleteMany: vi.fn() },
                     tag: { findFirst: vi.fn().mockResolvedValue(null), create: vi.fn() },
@@ -524,8 +528,8 @@ describe("Posts Route", () => {
             setupAuthorAuth();
             const existingPost = createMockPost({ authorId: authorSession.user.id });
 
-            prismaMock.post.findUnique.mockResolvedValue(existingPost);
-            prismaMock.post.delete.mockResolvedValue(existingPost);
+            getMock(prismaMock.post.findUnique).mockResolvedValue(existingPost);
+            getMock(prismaMock.post.delete).mockResolvedValue(existingPost);
 
             const res = await app.request(`/api/posts/${existingPost.id}`, {
                 method: "DELETE",
@@ -539,7 +543,7 @@ describe("Posts Route", () => {
 
         it("should return 404 when post not found", async () => {
             setupAuthorAuth();
-            prismaMock.post.findUnique.mockResolvedValue(null);
+            getMock(prismaMock.post.findUnique).mockResolvedValue(null);
 
             const res = await app.request("/api/posts/cnotfound1234567890123450", {
                 method: "DELETE",
@@ -554,7 +558,7 @@ describe("Posts Route", () => {
         it("should return 403 when user is not owner or admin", async () => {
             setupAuthorAuth();
             const existingPost = createMockPost({ authorId: "different-author-id" });
-            prismaMock.post.findUnique.mockResolvedValue(existingPost);
+            getMock(prismaMock.post.findUnique).mockResolvedValue(existingPost);
 
             const res = await app.request(`/api/posts/${existingPost.id}`, {
                 method: "DELETE",
@@ -570,8 +574,8 @@ describe("Posts Route", () => {
             setupAdminAuth();
             const existingPost = createMockPost({ authorId: "different-author-id" });
 
-            prismaMock.post.findUnique.mockResolvedValue(existingPost);
-            prismaMock.post.delete.mockResolvedValue(existingPost);
+            getMock(prismaMock.post.findUnique).mockResolvedValue(existingPost);
+            getMock(prismaMock.post.delete).mockResolvedValue(existingPost);
 
             const res = await app.request(`/api/posts/${existingPost.id}`, {
                 method: "DELETE",
