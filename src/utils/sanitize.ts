@@ -109,10 +109,7 @@ export function sanitizeUrl(str: string): string | null {
         }
 
         // Block javascript: and data: URLs that might have slipped through
-        if (
-            url.href.toLowerCase().includes("javascript:") ||
-            url.href.toLowerCase().includes("data:text/html")
-        ) {
+        if (url.href.toLowerCase().includes("javascript:") || url.href.toLowerCase().includes("data:text/html")) {
             return null;
         }
 
@@ -157,7 +154,7 @@ export function sanitizeObject<T extends Record<string, unknown>>(
     options: {
         stripHtml?: boolean;
         escapeHtml?: boolean;
-    } = {}
+    } = {},
 ): T {
     const { stripHtml: shouldStripHtml = false, escapeHtml: shouldEscapeHtml = false } = options;
 
@@ -176,10 +173,7 @@ export function sanitizeObject<T extends Record<string, unknown>>(
             }
             result[key] = sanitized.trim();
         } else if (value && typeof value === "object" && !Array.isArray(value)) {
-            result[key] = sanitizeObject(
-                value as Record<string, unknown>,
-                options
-            );
+            result[key] = sanitizeObject(value as Record<string, unknown>, options);
         }
     }
 

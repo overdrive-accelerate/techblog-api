@@ -41,7 +41,7 @@ export interface MockAuthSession {
  */
 export const createMockSession = (
     userOverrides: Partial<MockUser> = {},
-    sessionOverrides: Partial<MockSession> = {}
+    sessionOverrides: Partial<MockSession> = {},
 ): MockAuthSession => {
     const userId = userOverrides.id || "cltest1234567890123456780";
 
@@ -74,9 +74,7 @@ export const createMockSession = (
 /**
  * Create a mock session for a READER role user
  */
-export const mockReaderSession = (
-    overrides: Partial<MockUser> = {}
-): MockAuthSession =>
+export const mockReaderSession = (overrides: Partial<MockUser> = {}): MockAuthSession =>
     createMockSession({
         role: Role.READER,
         email: "reader@example.com",
@@ -87,9 +85,7 @@ export const mockReaderSession = (
 /**
  * Create a mock session for an AUTHOR role user
  */
-export const mockAuthorSession = (
-    overrides: Partial<MockUser> = {}
-): MockAuthSession =>
+export const mockAuthorSession = (overrides: Partial<MockUser> = {}): MockAuthSession =>
     createMockSession({
         id: "clauthor12345678901234567",
         role: Role.AUTHOR,
@@ -101,9 +97,7 @@ export const mockAuthorSession = (
 /**
  * Create a mock session for an ADMIN role user
  */
-export const mockAdminSession = (
-    overrides: Partial<MockUser> = {}
-): MockAuthSession =>
+export const mockAdminSession = (overrides: Partial<MockUser> = {}): MockAuthSession =>
     createMockSession({
         id: "cladmin123456789012345670",
         role: Role.ADMIN,

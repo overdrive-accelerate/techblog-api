@@ -1,18 +1,7 @@
 import { vi } from "vitest";
 import type { PrismaClient } from "../../../generated/prisma/client.js";
-import type {
-    User,
-    Post,
-    Tag,
-    Comment,
-    PublishRequest,
-    Profile,
-} from "../../../generated/prisma/client.js";
-import {
-    Role,
-    PostStatus,
-    PublishRequestStatus,
-} from "../../../generated/prisma/client.js";
+import type { User, Post, Tag, Comment, PublishRequest, Profile } from "../../../generated/prisma/client.js";
+import { Role, PostStatus, PublishRequestStatus } from "../../../generated/prisma/client.js";
 
 // Register the mock using vi.mock
 // This replaces the real @/lib/prisma module with our mock implementation

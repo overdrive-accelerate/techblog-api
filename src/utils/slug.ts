@@ -30,7 +30,7 @@ type SlugPrismaClient = Pick<PrismaClient, "post" | "tag">;
 export async function generateUniqueSlug(
     title: string,
     excludeId?: string,
-    prisma: SlugPrismaClient = defaultPrisma
+    prisma: SlugPrismaClient = defaultPrisma,
 ): Promise<string> {
     const baseSlug = slugify(title);
     let slug = baseSlug;
@@ -83,7 +83,7 @@ export async function generateUniqueSlug(
 export async function generateUniqueTagSlug(
     name: string,
     excludeId?: string,
-    prisma: SlugPrismaClient = defaultPrisma
+    prisma: SlugPrismaClient = defaultPrisma,
 ): Promise<string> {
     const baseSlug = slugify(name);
     let slug = baseSlug;

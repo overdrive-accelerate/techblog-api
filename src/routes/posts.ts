@@ -387,7 +387,7 @@ export const createPostsRoute = (db: PrismaClient, authDep: AuthDependency) => {
                             },
                         },
                     });
-                })
+                }),
         );
 
         return c.json(
@@ -501,7 +501,7 @@ export const createPostsRoute = (db: PrismaClient, authDep: AuthDependency) => {
                             },
                         },
                     });
-                })
+                }),
         );
 
         return c.json({

@@ -10,12 +10,7 @@ import { auth } from "@/lib/auth";
 import { disconnectDatabase } from "@/lib/prisma";
 import { logger as appLogger } from "@/utils/logger";
 import { getRedisClient } from "@/lib/redis";
-import {
-    securityHeaders,
-    requestValidation,
-    jsonBodyLimit,
-    uploadBodyLimit,
-} from "@/middleware/security";
+import { securityHeaders, requestValidation, jsonBodyLimit, uploadBodyLimit } from "@/middleware/security";
 import { generalRateLimit, authRateLimit, uploadRateLimit } from "@/middleware/rate-limit";
 import healthRoute from "@/routes/health";
 import meRoute from "@/routes/me";

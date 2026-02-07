@@ -53,7 +53,7 @@ export const auth = betterAuth({
             sendVerificationEmail(user.email, url, token).catch((error) => {
                 logger.error(
                     `Failed to send verification email to ${user.email} (userId: ${user.id})`,
-                    error instanceof Error ? error : new Error(String(error))
+                    error instanceof Error ? error : new Error(String(error)),
                 );
             });
         },
@@ -63,7 +63,7 @@ export const auth = betterAuth({
             sendResetPasswordEmail(user.email, url, token).catch((error) => {
                 logger.error(
                     `Failed to send password reset email to ${user.email} (userId: ${user.id})`,
-                    error instanceof Error ? error : new Error(String(error))
+                    error instanceof Error ? error : new Error(String(error)),
                 );
             });
         },

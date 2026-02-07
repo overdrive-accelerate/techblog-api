@@ -25,16 +25,14 @@ export const slugify = vi.fn((text: string): string => {
 
 // Mock generateUniqueSlug - returns slugified name (for posts)
 // Matches production signature: (title, excludeId?, prisma?)
-export const generateUniqueSlug = vi.fn(
-    async (title: string, _excludeId?: string, _prisma?: any): Promise<string> => {
-        return slugifyImpl(title);
-    }
-);
+export const generateUniqueSlug = vi.fn(async (title: string, _excludeId?: string, _prisma?: any): Promise<string> => {
+    return slugifyImpl(title);
+});
 
 // Mock generateUniqueTagSlug - returns slugified name (for tags)
 // Matches production signature: (name, excludeId?, prisma?)
 export const generateUniqueTagSlug = vi.fn(
     async (name: string, _excludeId?: string, _prisma?: any): Promise<string> => {
         return slugifyImpl(name);
-    }
+    },
 );

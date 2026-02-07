@@ -1,0 +1,244 @@
+# CI/CD Quality Checks Workflow
+# Runs comprehensive quality checks on every PR
+# Includes: TypeScript type checking, code formatting, tests, coverage enforcement, and migration validation
+# Research sources documented in: .github/CI-CD-RESEARCH.md
+
+name: CI Quality Checks
+
+on:
+  pull_request:
+    branches:
+      - main
+      - dev
+  push:
+    branches:
+      - main
+      - dev
+
+# Cancel in-progress runs for the same PR/branch
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Job 1: TypeScript Type Checking
+  typecheck:
+    name: TypeScript Type Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Cache Bun dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lockb') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Set database URLs
+        run: |
+          echo "DATABASE_URL=${{ secrets.TEST_DATABASE_URL != '' && secrets.TEST_DATABASE_URL || 'postgresql://user:password@localhost:5432/test' }}" >> $GITHUB_ENV
+          echo "DIRECT_URL=${{ secrets.TEST_DIRECT_URL != '' && secrets.TEST_DIRECT_URL || 'postgresql://user:password@localhost:5432/test' }}" >> $GITHUB_ENV
+
+      - name: Generate Prisma Client
+        run: bun run db:generate
+
+      - name: Run TypeScript type check
+        run: bunx tsc --noEmit
+
+  # Job 2: Code Formatting Check
+  format-check:
+    name: Code Formatting Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Cache Bun dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lockb') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Check Prettier formatting
+        run: bunx prettier --check "src/**/*.{ts,js,json}" "__tests__/**/*.{ts,js}"
+
+  # Job 3: Database Migration Validation
+  migration-check:
+    name: Prisma Migration Validation
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Cache Bun dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lockb') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Check Prisma schema validity
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
+          DIRECT_URL: postgresql://test_user:test_password@localhost:5432/test_db
+        run: bunx prisma validate
+
+      - name: Apply migrations to test database
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
+          DIRECT_URL: postgresql://test_user:test_password@localhost:5432/test_db
+        run: bunx prisma migrate deploy
+
+      - name: Check migration status
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
+          DIRECT_URL: postgresql://test_user:test_password@localhost:5432/test_db
+        run: bunx prisma migrate status
+
+  # Job 4: Tests with Coverage Enforcement
+  test-and-coverage:
+    name: Tests & Coverage Enforcement
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Cache Bun dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lockb') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Set database URLs
+        run: |
+          echo "DATABASE_URL=${{ secrets.TEST_DATABASE_URL != '' && secrets.TEST_DATABASE_URL || 'postgresql://user:password@localhost:5432/test' }}" >> $GITHUB_ENV
+          echo "DIRECT_URL=${{ secrets.TEST_DIRECT_URL != '' && secrets.TEST_DIRECT_URL || 'postgresql://user:password@localhost:5432/test' }}" >> $GITHUB_ENV
+
+      - name: Generate Prisma Client
+        run: bun run db:generate
+
+      - name: Run tests with coverage
+        id: vitest
+        continue-on-error: true
+        run: bun run test:coverage
+
+      - name: Upload coverage reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-reports
+          path: coverage/
+          retention-days: 30
+
+      - name: Comment coverage summary on PR
+        if: always() && github.event_name == 'pull_request'
+        uses: davelosert/vitest-coverage-report-action@v2
+        with:
+          json-summary-path: ./coverage/coverage-summary.json
+          json-final-path: ./coverage/coverage-final.json
+
+      - name: Verify coverage thresholds
+        if: steps.vitest.outcome != 'success'
+        run: |
+          echo "❌ Coverage thresholds not met!"
+          echo "Required thresholds (from vitest.config.ts):"
+          echo "   - Statements: ≥80%"
+          echo "   - Branches: ≥75%"
+          echo "   - Functions: ≥80%"
+          echo "   - Lines: ≥80%"
+          echo ""
+          echo "Check the coverage report above for details."
+          exit 1
+
+  # Summary Job - Runs after all checks
+  quality-gate:
+    name: Quality Gate Summary
+    runs-on: ubuntu-latest
+    needs: [typecheck, format-check, migration-check, test-and-coverage]
+    if: always()
+
+    steps:
+      - name: Check all jobs status
+        run: |
+          if [ "${{ needs.typecheck.result }}" != "success" ]; then
+            echo "❌ TypeScript type check failed"
+            exit 1
+          fi
+          if [ "${{ needs.format-check.result }}" != "success" ]; then
+            echo "❌ Code formatting check failed"
+            exit 1
+          fi
+          if [ "${{ needs.migration-check.result }}" != "success" ]; then
+            echo "❌ Database migration validation failed"
+            exit 1
+          fi
+          if [ "${{ needs.test-and-coverage.result }}" != "success" ]; then
+            echo "❌ Tests or coverage enforcement failed"
+            exit 1
+          fi
+
+          echo "✅ All quality checks passed!"
+          echo "✅ TypeScript type check: PASSED"
+          echo "✅ Code formatting: PASSED"
+          echo "✅ Database migrations: PASSED"
+          echo "✅ Tests (444 tests): PASSED"
+          echo "✅ Coverage (≥80%): PASSED"

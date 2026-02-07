@@ -86,16 +86,14 @@ export const resetSupabaseMocks = (): void => {
     // Reset auth mock to default unauthenticated state
     mockSupabaseClient.auth.getSession.mockResolvedValue({
         data: { session: null },
-        error: null
+        error: null,
     });
 };
 
 /**
  * Simulate a successful upload
  */
-export const simulateUploadSuccess = (
-    path: string = "test-user-id/test-image.jpg"
-): void => {
+export const simulateUploadSuccess = (path: string = "test-user-id/test-image.jpg"): void => {
     mockBucket.upload.mockResolvedValue({
         error: null,
         data: { path },
