@@ -177,17 +177,9 @@ jobs:
         run: bun run db:generate
 
       - name: Run tests with coverage
+        id: vitest
+        continue-on-error: true
         run: bun run test:coverage
-
-      - name: Verify coverage thresholds
-        run: |
-          echo "✅ Coverage thresholds enforced by vitest.config.ts:"
-          echo "   - Statements: 80%"
-          echo "   - Branches: 75%"
-          echo "   - Functions: 80%"
-          echo "   - Lines: 80%"
-          echo ""
-          echo "If this step passes, all thresholds have been met!"
 
       - name: Upload coverage reports
         if: always()
@@ -198,11 +190,24 @@ jobs:
           retention-days: 30
 
       - name: Comment coverage summary on PR
-        if: github.event_name == 'pull_request'
+        if: always() && github.event_name == 'pull_request'
         uses: davelosert/vitest-coverage-report-action@v2
         with:
           json-summary-path: ./coverage/coverage-summary.json
           json-final-path: ./coverage/coverage-final.json
+
+      - name: Verify coverage thresholds
+        if: steps.vitest.outcome != 'success'
+        run: |
+          echo "❌ Coverage thresholds not met!"
+          echo "Required thresholds (from vitest.config.ts):"
+          echo "   - Statements: ≥80%"
+          echo "   - Branches: ≥75%"
+          echo "   - Functions: ≥80%"
+          echo "   - Lines: ≥80%"
+          echo ""
+          echo "Check the coverage report above for details."
+          exit 1
 
   # Summary Job - Runs after all checks
   quality-gate:
