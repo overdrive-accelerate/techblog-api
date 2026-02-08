@@ -147,7 +147,7 @@ export async function sendVerificationEmail(email: string, url: string, token: s
     // Security: Only log in local development, mask sensitive data in shared environments
     if (process.env.NODE_ENV === "development" && !process.env.CI) {
         // Mask email for privacy (show first 3 chars + domain)
-        const maskedEmail = email.replace(/^(.{3}).*?(@.*)$/, "$1***$2");
+        const maskedEmail = email.replace(/^(.{1,3}).*?(@.*)$/, "$1***$2");
 
         // Show full link for local testing convenience
         // Note: This is only for local development. Never log in production or CI.
