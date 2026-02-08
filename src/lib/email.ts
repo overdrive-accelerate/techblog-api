@@ -193,13 +193,9 @@ export async function sendVerificationEmail(email: string, url: string, token: s
             tokenPreview: token.substring(0, 10) + "...",
         });
     } catch (error) {
-        logger.error(
-            "Error sending verification email",
-            error instanceof Error ? error : new Error(String(error)),
-            {
-                email: maskEmail(email),
-            },
-        );
+        logger.error("Error sending verification email", error instanceof Error ? error : new Error(String(error)), {
+            email: maskEmail(email),
+        });
         throw error;
     }
 }
@@ -279,13 +275,9 @@ export async function sendResetPasswordEmail(email: string, url: string, token: 
             tokenPreview: token.substring(0, 10) + "...",
         });
     } catch (error) {
-        logger.error(
-            "Error sending password reset email",
-            error instanceof Error ? error : new Error(String(error)),
-            {
-                email: maskEmail(email),
-            },
-        );
+        logger.error("Error sending password reset email", error instanceof Error ? error : new Error(String(error)), {
+            email: maskEmail(email),
+        });
         throw error;
     }
 }
