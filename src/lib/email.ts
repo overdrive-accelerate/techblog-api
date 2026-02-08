@@ -13,10 +13,12 @@ import { logger } from "@/utils/logger";
  * Defensive: returns "***" if email format is unexpected.
  * @example "testjohn@example.com" → "tes***@example.com"
  * @example "a@b.com" → "a***@b.com"
+ * @example "ab@example.com" → "ab***@example.com"
  * @example "invalid" → "***"
  */
 function maskEmail(email: string): string {
-    const match = email.match(/^(.{1,3}).*?(@.*)$/);
+    // Match: 1-3 non-@ chars, then anything until @, then @ + domain
+    const match = email.match(/^([^@]{1,3})[^@]*(@.+)$/);
     return match ? `${match[1]}***${match[2]}` : "***";
 }
 
@@ -179,19 +181,25 @@ export async function sendVerificationEmail(email: string, url: string, token: s
         });
 
         if (result.error) {
-            logger.error("Failed to send verification email", new Error(result.error.message), { email });
+            logger.error("Failed to send verification email", new Error(result.error.message), {
+                email: maskEmail(email),
+            });
             throw new Error(`Failed to send verification email: ${result.error.message}`);
         }
 
         logger.info("Verification email sent successfully", {
-            email,
+            email: maskEmail(email),
             emailId: result.data?.id,
             tokenPreview: token.substring(0, 10) + "...",
         });
     } catch (error) {
-        logger.error("Error sending verification email", error instanceof Error ? error : new Error(String(error)), {
-            email,
-        });
+        logger.error(
+            "Error sending verification email",
+            error instanceof Error ? error : new Error(String(error)),
+            {
+                email: maskEmail(email),
+            },
+        );
         throw error;
     }
 }
@@ -259,19 +267,25 @@ export async function sendResetPasswordEmail(email: string, url: string, token: 
         });
 
         if (result.error) {
-            logger.error("Failed to send password reset email", new Error(result.error.message), { email });
+            logger.error("Failed to send password reset email", new Error(result.error.message), {
+                email: maskEmail(email),
+            });
             throw new Error(`Failed to send password reset email: ${result.error.message}`);
         }
 
         logger.info("Password reset email sent successfully", {
-            email,
+            email: maskEmail(email),
             emailId: result.data?.id,
             tokenPreview: token.substring(0, 10) + "...",
         });
     } catch (error) {
-        logger.error("Error sending password reset email", error instanceof Error ? error : new Error(String(error)), {
-            email,
-        });
+        logger.error(
+            "Error sending password reset email",
+            error instanceof Error ? error : new Error(String(error)),
+            {
+                email: maskEmail(email),
+            },
+        );
         throw error;
     }
 }
