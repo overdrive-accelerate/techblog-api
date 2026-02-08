@@ -143,6 +143,16 @@ export async function sendVerificationEmail(email: string, url: string, token: s
 
     const html = getEmailTemplate(content, "Verify Email Address", url);
 
+    // Development: Log verification link to console for easy testing
+    if (process.env.NODE_ENV === "development") {
+        console.log("\n" + "=".repeat(80));
+        console.log("🔗 [DEV ONLY] Email Verification Link");
+        console.log("=".repeat(80));
+        console.log(`📧 To: ${email}`);
+        console.log(`🔗 Link: ${url}`);
+        console.log("=".repeat(80) + "\n");
+    }
+
     try {
         const result = await client.emails.send({
             from: fromEmail,
@@ -208,6 +218,16 @@ export async function sendResetPasswordEmail(email: string, url: string, token: 
     `;
 
     const html = getEmailTemplate(content, "Reset Password", url);
+
+    // Development: Log reset link to console for easy testing
+    if (process.env.NODE_ENV === "development") {
+        console.log("\n" + "=".repeat(80));
+        console.log("🔑 [DEV ONLY] Password Reset Link");
+        console.log("=".repeat(80));
+        console.log(`📧 To: ${email}`);
+        console.log(`🔗 Link: ${url}`);
+        console.log("=".repeat(80) + "\n");
+    }
 
     try {
         const result = await client.emails.send({
