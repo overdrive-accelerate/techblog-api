@@ -7,6 +7,21 @@ import { logger } from "@/utils/logger";
  * Handles email verification and password reset flows
  */
 
+/**
+ * Safely masks an email address for logging.
+ * Shows first 1-3 characters + domain, hides the rest.
+ * Defensive: returns "***" if email format is unexpected.
+ * @example "testjohn@example.com" → "tes***@example.com"
+ * @example "a@b.com" → "a***@b.com"
+ * @example "ab@example.com" → "ab***@example.com"
+ * @example "invalid" → "***"
+ */
+function maskEmail(email: string): string {
+    // Match: 1-3 non-@ chars, then anything until @, then @ + domain
+    const match = email.match(/^([^@]{1,3})[^@]*(@.+)$/);
+    return match ? `${match[1]}***${match[2]}` : "***";
+}
+
 // Lazy-initialize Resend client on first use
 let resend: Resend | null = null;
 
@@ -146,15 +161,12 @@ export async function sendVerificationEmail(email: string, url: string, token: s
     // Development: Log verification link to console for easy testing
     // Security: Only log in local development, mask sensitive data in shared environments
     if (process.env.NODE_ENV === "development" && !process.env.CI) {
-        // Mask email for privacy (show first 3 chars + domain)
-        const maskedEmail = email.replace(/^(.{1,3}).*?(@.*)$/, "$1***$2");
-
         // Show full link for local testing convenience
         // Note: This is only for local development. Never log in production or CI.
         console.log("\n" + "=".repeat(80));
         console.log("🔗 [DEV ONLY] Email Verification Link");
         console.log("=".repeat(80));
-        console.log(`📧 To: ${maskedEmail}`);
+        console.log(`📧 To: ${maskEmail(email)}`);
         console.log(`🔗 Link: ${url}`);
         console.log("⚠️  WARNING: This link grants email verification. Do not share!");
         console.log("=".repeat(80) + "\n");
@@ -169,18 +181,20 @@ export async function sendVerificationEmail(email: string, url: string, token: s
         });
 
         if (result.error) {
-            logger.error("Failed to send verification email", new Error(result.error.message), { email });
+            logger.error("Failed to send verification email", new Error(result.error.message), {
+                email: maskEmail(email),
+            });
             throw new Error(`Failed to send verification email: ${result.error.message}`);
         }
 
         logger.info("Verification email sent successfully", {
-            email,
+            email: maskEmail(email),
             emailId: result.data?.id,
             tokenPreview: token.substring(0, 10) + "...",
         });
     } catch (error) {
         logger.error("Error sending verification email", error instanceof Error ? error : new Error(String(error)), {
-            email,
+            email: maskEmail(email),
         });
         throw error;
     }
@@ -229,15 +243,12 @@ export async function sendResetPasswordEmail(email: string, url: string, token: 
     // Development: Log reset link to console for easy testing
     // Security: Only log in local development, mask sensitive data in shared environments
     if (process.env.NODE_ENV === "development" && !process.env.CI) {
-        // Mask email for privacy (show first 3 chars + domain)
-        const maskedEmail = email.replace(/^(.{1,3}).*?(@.*)$/, "$1***$2");
-
         // Show full link for local testing convenience
         // Note: This is only for local development. Never log in production or CI.
         console.log("\n" + "=".repeat(80));
         console.log("🔑 [DEV ONLY] Password Reset Link");
         console.log("=".repeat(80));
-        console.log(`📧 To: ${maskedEmail}`);
+        console.log(`📧 To: ${maskEmail(email)}`);
         console.log(`🔗 Link: ${url}`);
         console.log("⚠️  WARNING: This link grants password reset. Do not share!");
         console.log("=".repeat(80) + "\n");
@@ -252,18 +263,20 @@ export async function sendResetPasswordEmail(email: string, url: string, token: 
         });
 
         if (result.error) {
-            logger.error("Failed to send password reset email", new Error(result.error.message), { email });
+            logger.error("Failed to send password reset email", new Error(result.error.message), {
+                email: maskEmail(email),
+            });
             throw new Error(`Failed to send password reset email: ${result.error.message}`);
         }
 
         logger.info("Password reset email sent successfully", {
-            email,
+            email: maskEmail(email),
             emailId: result.data?.id,
             tokenPreview: token.substring(0, 10) + "...",
         });
     } catch (error) {
         logger.error("Error sending password reset email", error instanceof Error ? error : new Error(String(error)), {
-            email,
+            email: maskEmail(email),
         });
         throw error;
     }
