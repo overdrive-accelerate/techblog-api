@@ -154,7 +154,7 @@ export async function sendVerificationEmail(email: string, url: string, token: s
         console.log("\n" + "=".repeat(80));
         console.log("🔗 [DEV ONLY] Email Verification Link");
         console.log("=".repeat(80));
-        console.log(`📧 To: ${maskedEmail} (full: ${email})`);
+        console.log(`📧 To: ${maskedEmail}`);
         console.log(`🔗 Link: ${url}`);
         console.log("⚠️  WARNING: This link grants email verification. Do not share!");
         console.log("=".repeat(80) + "\n");
@@ -237,7 +237,7 @@ export async function sendResetPasswordEmail(email: string, url: string, token: 
         console.log("\n" + "=".repeat(80));
         console.log("🔑 [DEV ONLY] Password Reset Link");
         console.log("=".repeat(80));
-        console.log(`📧 To: ${maskedEmail} (full: ${email})`);
+        console.log(`📧 To: ${maskedEmail}`);
         console.log(`🔗 Link: ${url}`);
         console.log("⚠️  WARNING: This link grants password reset. Do not share!");
         console.log("=".repeat(80) + "\n");
