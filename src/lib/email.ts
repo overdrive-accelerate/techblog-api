@@ -144,12 +144,19 @@ export async function sendVerificationEmail(email: string, url: string, token: s
     const html = getEmailTemplate(content, "Verify Email Address", url);
 
     // Development: Log verification link to console for easy testing
-    if (process.env.NODE_ENV === "development") {
+    // Security: Only log in local development, mask sensitive data in shared environments
+    if (process.env.NODE_ENV === "development" && !process.env.CI) {
+        // Mask email for privacy (show first 3 chars + domain)
+        const maskedEmail = email.replace(/^(.{1,3}).*?(@.*)$/, "$1***$2");
+
+        // Show full link for local testing convenience
+        // Note: This is only for local development. Never log in production or CI.
         console.log("\n" + "=".repeat(80));
         console.log("🔗 [DEV ONLY] Email Verification Link");
         console.log("=".repeat(80));
-        console.log(`📧 To: ${email}`);
+        console.log(`📧 To: ${maskedEmail}`);
         console.log(`🔗 Link: ${url}`);
+        console.log("⚠️  WARNING: This link grants email verification. Do not share!");
         console.log("=".repeat(80) + "\n");
     }
 
@@ -220,12 +227,19 @@ export async function sendResetPasswordEmail(email: string, url: string, token: 
     const html = getEmailTemplate(content, "Reset Password", url);
 
     // Development: Log reset link to console for easy testing
-    if (process.env.NODE_ENV === "development") {
+    // Security: Only log in local development, mask sensitive data in shared environments
+    if (process.env.NODE_ENV === "development" && !process.env.CI) {
+        // Mask email for privacy (show first 3 chars + domain)
+        const maskedEmail = email.replace(/^(.{1,3}).*?(@.*)$/, "$1***$2");
+
+        // Show full link for local testing convenience
+        // Note: This is only for local development. Never log in production or CI.
         console.log("\n" + "=".repeat(80));
         console.log("🔑 [DEV ONLY] Password Reset Link");
         console.log("=".repeat(80));
-        console.log(`📧 To: ${email}`);
+        console.log(`📧 To: ${maskedEmail}`);
         console.log(`🔗 Link: ${url}`);
+        console.log("⚠️  WARNING: This link grants password reset. Do not share!");
         console.log("=".repeat(80) + "\n");
     }
 
